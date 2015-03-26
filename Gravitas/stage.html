@@ -18,15 +18,27 @@ var game = new Phaser.Game(1600, 800, Phaser.AUTO, '', { preload: preload, creat
 
 function preload() {
 
-    game.load.image('sky', 'www/assets/sky.png');
+    game.load.image('sky', 'www/assets/sky2.png');
     game.load.image('ground', 'www/assets/platform.png');
+    game.load.image('gun', 'www/assets/smalltempgun.png');
+    game.load.image('bullet', 'www/assets/bullet.png');
     game.load.spritesheet('dude', 'www/assets/dude.png', 32, 48);
 
 }
     
 var player;
 var platforms;
-var cursors;    
+var cursors;  
+
+
+var guns;    
+var hasGun = 0;
+    
+var bullet;    
+var bullets;
+var bulletTime = 0;
+    
+
 
 function create() {
     
@@ -81,9 +93,37 @@ function create() {
     // walking right or left
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
+
+
+    //guns
+    guns = game.add.group();
+
+
+    guns.enableBody = true;
+
+
+    for (var i = 0; i < 4; i++)
+    {
+        var gun = guns.create(i * 250, 277, 'gun');
+    }
+    
+    gun = guns.create(1200, 475, 'gun');
+    gun = guns.create(850, 77, 'gun');
+    
+    //bullets
+    bullets = game.add.group();
+    bullets.enableBody = true;
+    bullets.physicsBodyType = Phaser.Physics.ARCADE;
+    bullets.createMultiple(30, 'bullet', 0, false);
+    bullets.setAll('anchor.x', 0.5);
+    bullets.setAll('anchor.y', 0.5);
+    bullets.setAll('outOfBoundsKill', true);
+    bullets.setAll('checkWorldBounds', true);
+
     
     //  controls.
     cursors = game.input.keyboard.createCursorKeys();
+    spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     
     
 }
@@ -91,7 +131,11 @@ function create() {
 function update() {
     
     game.physics.arcade.collide(player, platforms);
-        player.body.velocity.x = 0;
+    game.physics.arcade.collide(guns, platforms);
+    player.body.velocity.x = 0;
+
+     //  Checks to see if the player overlaps with any of the guns, if he does call the collectGun function
+    game.physics.arcade.overlap(player, guns, collectGun, null, this);
 
     if (cursors.left.isDown)
     {
@@ -107,6 +151,14 @@ function update() {
 
         player.animations.play('right');
     }
+
+    else if(spaceBar.isDown)
+    {
+        //shoot 
+        fireBullet();
+    
+    }
+    
     else
     {
         //  Stand still
@@ -121,6 +173,35 @@ function update() {
         player.body.velocity.y = -350;
     }
     
+}
+
+function collectGun (player, gun) {
+    
+    // Removes the gun from the screen
+    
+    gun.kill();
+    hasGun = 1;
+
+
+}
+
+function fireBullet () {
+    // Ensure that player has a gun before he is able to shoot  
+    // To avoid players being allowed to fire too fast a time limit is set
+    if(hasGun == 1){
+        if (game.time.now > bulletTime)
+        {
+            //  Grab the first bullet we can from the pool
+            bullet = bullets.getFirstExists(false);
+ 
+            if (bullet)
+            {
+                bullet = bullets.create(player.x+20, player.y+20, 'bullet');
+                bullet.body.velocity.x = 500;
+            bulletTime = game.time.now + 200;
+            }
+        }
+    }
 }
 
 </script>
