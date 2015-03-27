@@ -21,14 +21,15 @@ function preload() {
     game.load.image('sky', 'www/assets/sky2.png');
     game.load.image('ground', 'www/assets/platform.png');
     game.load.image('gun', 'www/assets/smalltempgun.png');
-    game.load.image('bullet', 'www/assets/bullet.png');
+    game.load.image('bullet', 'www/assets/pbullet.gif');
     game.load.spritesheet('dude', 'www/assets/dude.png', 32, 48);
 
 }
     
 var player;
 var platforms;
-var cursors;  
+var cursors;
+var facing;
 
 
 var guns;    
@@ -112,9 +113,10 @@ function create() {
     
     //bullets
     bullets = game.add.group();
+    //game.physics.enable(bullets,Phaser.Physics.ARCADE);
     bullets.enableBody = true;
     bullets.physicsBodyType = Phaser.Physics.ARCADE;
-    bullets.createMultiple(30, 'bullet', 0, false);
+    //bullets.createMultiple(30, 'bullet', 0, false);
     bullets.setAll('anchor.x', 0.5);
     bullets.setAll('anchor.y', 0.5);
     bullets.setAll('outOfBoundsKill', true);
@@ -143,6 +145,14 @@ function update() {
         player.body.velocity.x = -150;
 
         player.animations.play('left');
+        facing = 'left';
+        
+        //run and shoot
+        if(spaceBar.isDown)
+        {
+            //shoot 
+            fireBullet();
+        }
     }
     else if (cursors.right.isDown)
     {
@@ -150,8 +160,15 @@ function update() {
         player.body.velocity.x = 150;
 
         player.animations.play('right');
+        facing = 'right';
+        
+        //run and shoot
+        if(spaceBar.isDown)
+        {
+            //shoot 
+            fireBullet();
+        }
     }
-
     else if(spaceBar.isDown)
     {
         //shoot 
@@ -163,8 +180,12 @@ function update() {
     {
         //  Stand still
         player.animations.stop();
-
-        player.frame = 4;
+        if (facing == 'left'){
+            player.frame = 0;
+        }
+        else{
+            player.frame = 7;
+        }
     }
     
     //  Allow the player to jump if they are touching the ground.
@@ -192,12 +213,18 @@ function fireBullet () {
         if (game.time.now > bulletTime)
         {
             //  Grab the first bullet we can from the pool
-            bullet = bullets.getFirstExists(false);
- 
-            if (bullet)
+            //bullet = bullets.getFirstExists(false);
+            if (facing == 'right')
             {
                 bullet = bullets.create(player.x+20, player.y+20, 'bullet');
-                bullet.body.velocity.x = 500;
+                bullet.body.velocity.x = 400;
+            bulletTime = game.time.now + 200;
+            }
+            
+            if (facing == 'left')
+            {
+                bullet = bullets.create(player.x-20, player.y+20, 'bullet');
+                bullet.body.velocity.x = -400;
             bulletTime = game.time.now + 200;
             }
         }
