@@ -1,30 +1,28 @@
-<!doctype html> 
-<html lang="en"> 
-<head> 
-	<meta charset="UTF-8" />
-	<title>Gravitas</title>
-    <script type="text/javascript" src="lib/phaser/phaser.min.js"></script>
-    <style type="text/css">
-        body {
-            margin: 0;
-        }
-    </style>
-</head>
-<body>
 
-<script src="/eureca.js"></script>
-<script src="js/stickman.js" type="text/javascript"></script> 
-<!--<script type="text/javascript">
+var ready = false;
+var eurecaServer;
+//this function will handle client communication with the server
+var eurecaClientSetup = function() {
+	//create an instance of eureca.io client
+	var eurecaClient = new Eureca.Client();
+	
+	eurecaClient.ready(function (proxy) {		
+        eurecaServer = proxy;
+		create();
+		ready = true;
+	});	
+} 
 
-var game = new Phaser.Game(1600, 800, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+//var game = new Phaser.Game(1600, 800, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var game = new Phaser.Game(1600, 800, Phaser.AUTO, '', { preload: preload, create: eurecaClientSetup, update: update});
 
 function preload() {
 
-    game.load.image('sky', 'www/assets/sky2.png');
-    game.load.image('ground', 'www/assets/platform.png');
-    game.load.image('gun', 'www/assets/smalltempgun.png');
-    game.load.image('bullet', 'www/assets/pbullet.gif');
-    game.load.spritesheet('dude', 'www/assets/dude.png', 32, 48);
+    game.load.image('sky', 'assets/sky2.png');
+    game.load.image('ground', 'assets/platform.png');
+    game.load.image('gun', 'assets/smalltempgun.png');
+    game.load.image('bullet', 'assets/pbullet.gif');
+    game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
 
 }
     
@@ -40,7 +38,9 @@ var hasGun = 0;
 var bullet;    
 var bullets;
 var bulletTime = 0;
-    
+
+
+var myId = 0;
 
 
 function create() {
@@ -133,6 +133,9 @@ function create() {
 }
 
 function update() {
+    
+    //do not update if client not ready
+	if (!ready) return;
     
     game.physics.arcade.collide(player, platforms);
     game.physics.arcade.collide(guns, platforms);
@@ -233,7 +236,7 @@ function fireBullet () {
     }
 }
 
-</script> -->
 
-</body>
-</html>
+function bulletHitPlayer(player, bullet){
+    bullet.kill();
+}
