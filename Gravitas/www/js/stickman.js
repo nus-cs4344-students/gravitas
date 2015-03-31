@@ -14,15 +14,26 @@ var eurecaClientSetup = function() {
 } 
 
 //var game = new Phaser.Game(1600, 800, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+
+//to Set up eurecaclient
 var game = new Phaser.Game(1600, 800, Phaser.AUTO, '', { preload: preload, create: eurecaClientSetup, update: update});
 
 function preload() {
 
+   /**
     game.load.image('sky', 'assets/sky2.png');
     game.load.image('ground', 'assets/platform.png');
     game.load.image('gun', 'assets/smalltempgun.png');
     game.load.image('bullet', 'assets/pbullet.gif');
-    game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
+    game.load.spritesheet('dude', 'assets/dude.png', 32, 48); 
+    **/
+    
+    game.load.image('sky', 'www/assets/sky2.png');
+    game.load.image('ground', 'www/assets/platform.png');
+    game.load.image('gun', 'www/assets/smalltempgun.png');
+    game.load.image('bullet', 'www/assets/pbullet.gif');
+    game.load.spritesheet('dude', 'www/assets/dude.png', 32, 48); 
+    
 
 }
     
@@ -134,8 +145,8 @@ function create() {
 
 function update() {
     
-    //do not update if client not ready
-	if (!ready) return;
+    //Do not update if client is not ready in Eureca
+    if (!ready) return;
     
     game.physics.arcade.collide(player, platforms);
     game.physics.arcade.collide(guns, platforms);
