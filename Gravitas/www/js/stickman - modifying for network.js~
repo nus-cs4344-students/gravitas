@@ -1,17 +1,3 @@
-var myId = 0;
-
-var stickman;
-var player;
-var stickmanList;
-var enemyBullets;
-var enemiesTotal;
-var enemiesAlive;
-var explosions;
-var logo;
-var cursors;
-var bullets;
-var fireRate = 100;
-var nextFire = 0;
 
 var ready = false;
 var eurecaServer;
@@ -22,40 +8,9 @@ var eurecaClientSetup = function() {
 	
 	eurecaClient.ready(function (proxy) {		
         eurecaServer = proxy;
-	});
-
-	eurecaClient.exports.setId = function(id)
-	{
-		myId = id;
 		create();
-		eurecaServer.handshake();
 		ready = true;
-	}
-	eurecaClient.exports.kill = function(id)
-	{
-		if(stickmanList[id])
-		{
-			stickmanList[id].kill();
-			console.log('killing ', id, stickmanList[id]);
-		}
-	}
-	eurecaClient.exports.spawnEnemy = function(i, x, y)
-	{
-		if (i == myId) return;
-		console.log('SPAWN');
-		var stckman = new StickMan(i, game, stickman);
-		stickmanList[i] = stckman;
-	}
-	eurecaClient.exports.updateState = function(id, state)
-	{
-		if(stickmanList[id]) {
-			stickmanList[id].cursor = state;
-			stickmanList[id].stickman.x = state.x;
-			stickmanList[id].stickman.y = state.y;
-			stickmanList[id].stickman.angle = state.angle;
-			stickmanList[id].update();
-		}
-	}
+	});	
 } 
 
 //var game = new Phaser.Game(1600, 800, Phaser.AUTO, '', { preload: preload, create: create, update: update });
@@ -98,104 +53,17 @@ StickMan = function(index, game, player) {
 	this.nextFire = 0;
 	this.alive = true;
 
-	this.stickman = game.add.sprite(x, y,'dude');
+	this.stickman = game.add.sprite(x, y, 'dude');
 	this.stickman.anchor.set(0.5);
-	this.stickman.id = index;
-	game.physics.enable(this.stickman, Phaser.Physics.ARCADE);
 	this.stickman.body.immovable = false;
 	this.stickman.body.collideWorldBounds = true;
+	this.stickman.body.bounce.setTo(0, 0);
 
 	this.stickman.angle = 0;
-	    
-    // player properties
-    this.stickman.body.bounce.y = 0.2;
-    this.stickman.body.gravity.y = 200;
-    this.stickman.body.collideWorldBounds = true;
-
-    // walking right or left
-    this.stickman.animations.add('left', [0, 1, 2, 3], 10, true);
-    this.stickman.animations.add('right', [5, 6, 7, 8], 10, true);
-
 
 	game.physics.arcade.velocityFromRotation(this.stickman.rotation, 0, this.stickman.body.velocity);
 };
 
-StickMan.prototype.update = function() {
-	var inputChanged = (
-			this.cursor.left != this.input.left ||
-			this.cursor.right != this.input.right ||
-			this.cursor.up != this.input.up ||
-			this.cursor.fire != this.input.fire
-	);
-
-	if(inputChanged)
-	{
-		//Send values to server
-		if(this.stickman.id == myId)
-		{
-			this.input.x = this.stickman.x;
-			this.input.y = this.stickman.y;
-			this.input.angle = this.stickman.angle;
-
-			eurecaServer.handleKeys(this.input);
-		}
-		//Right now does not immediately update gun rotation, not that we have a sprite for it
-	}
-
-	if(this.cursor.left)
-	{
-		this.stickman.body.velocity.x = -150;
-
-		this.stickman.animations.play('left');
-		this.facing = 'left';
-	}
-	else if (this.cursor.right)
-	{
-		this.stickman.body.velocity.x = 150;
-		this.stickman.animations.play('right');
-		this.facing = 'right';
-	}
-	else
-	{
-		this.stickman.animations.stop();
-		this.stickman.body.velocity.x = 0;
-		if(this.facing == 'left')
-		{
-			player.frame = 0;
-		}
-		else
-		{
-			player.frame = 7;
-		}
-	}
-	if(this.cursor.up && this.stickman.body.touching.down)
-	{
-		this.stickman.body.velocity.y = -350;
-	}
-	if (this.cursor.fire)
-	{
-		this.fire({x:this.cursor.tx, y:this.cursor.ty});
-	}
-	
-}
-
-StickMan.prototype.fire = function(target)
-{
-	if(!this.alive) return;
-	if(this.game.time.now > this.nextFire && this.bullets.countDead() > 0)
-	{
-		this.nextFire = this.game.time.now + this.fireRate;
-		var bullet = this.bullets.getFirstDead();
-		bullet.reset(this.stickman.x, this.stickman.y);
-		bullet.rotation = this.game.physics.arcade.moveToObject(bullet, target, 500);
-	}
-}
-
-StickMan.prototype.kill = function()
-{
-	this.alive = false;
-	this.stickman.kill();
-}
 	
 function preload() {
 
@@ -216,9 +84,9 @@ function preload() {
 
 }
     
-//var player;
+var player;
 var platforms;
-//var cursors;
+var cursors;
 var facing;
 
 
@@ -230,7 +98,7 @@ var bullets;
 var bulletTime = 0;
 
 
-//var myId = 0;
+var myId = 0;
 
 
 function create() {
@@ -271,19 +139,23 @@ function create() {
     var ledge = platforms.create(800, 100, 'ground');
     ledge.scale.setTo(2,1);
     ledge.body.immovable = true;
-
-	
+    
     // player settings
-	stickmanList = {};
-	player = new StickMan(myId, game, stickman);
-	stickmanList[myId] = player;
-	stickman = player.stickman;
-	stickman.x = 0;
-	stickman.y = 0;
-	bullets = player.bullets;
-    //player = game.add.sprite(32, game.world.height - 150, 'dude');
+    player = game.add.sprite(32, game.world.height - 150, 'dude');
+
     // enable physics on player
-    //game.physics.arcade.enable(player);
+    game.physics.arcade.enable(player);
+    
+    // player properties
+    player.body.bounce.y = 0.2;
+    player.body.gravity.y = 200;
+    player.body.collideWorldBounds = true;
+
+    // walking right or left
+    player.animations.add('left', [0, 1, 2, 3], 10, true);
+    player.animations.add('right', [5, 6, 7, 8], 10, true);
+
+
     //guns
     guns = game.add.group();
 
@@ -298,8 +170,7 @@ function create() {
     
     gun = guns.create(1200, 475, 'gun');
     gun = guns.create(850, 77, 'gun');
-	
-    /*
+    
     //bullets
     bullets = game.add.group();
     //game.physics.enable(bullets,Phaser.Physics.ARCADE);
@@ -311,8 +182,7 @@ function create() {
     bullets.setAll('outOfBoundsKill', true);
     bullets.setAll('checkWorldBounds', true);
 
-    */
-
+    
     //  controls.
     cursors = game.input.keyboard.createCursorKeys();
     spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -324,41 +194,68 @@ function update() {
     
     //Do not update if client is not ready in Eureca
     if (!ready) return;
-
-	player.input.left = cursors.left.isDown;
-	player.input.right = cursors.right.isDown;
-	player.input.up = cursors.up.isDown;
-	player.input.fire = game.input.activePointer.isDown;
-	player.input.tx = game.input.x+ game.camera.x;
-	player.input.ty = game.input.y+ game.camera.y;
-	
-    game.physics.arcade.collide(stickman, platforms);
+    
+    game.physics.arcade.collide(player, platforms);
     game.physics.arcade.collide(guns, platforms);
-    for(var i in stickmanList)
-	{
-		if(!stickmanList[i]) continue;
-		var curBullets = stickmanList[i].bullets;
-		var curStickman = stickmanList[i].stickman;
-		for(var j in stickmanList)
-		{
-			if(!stickmanList[j]) continue;
-			if(j!=i)
-			{
-				var targetStickman = stickmanList[j].stickman;
-				game.physics.arcade.overlap(curBullets, targetStickman, bulletHitPlayer, null, this);
-			}
-			if(stickmanList[j].alive)
-			{
-				stickmanList[j].update();
-				game.physics.arcade.collide(stickmanList[j].stickman, platforms);
-				game.physics.arcade.overlap(stickmanList[j].stickman, guns, collectGun, null, this);
-			}
-		}
-	}
-
+    player.body.velocity.x = 0;
 
      //  Checks to see if the player overlaps with any of the guns, if he does call the collectGun function
-    game.physics.arcade.overlap(stickman, guns, collectGun, null, this);
+    game.physics.arcade.overlap(player, guns, collectGun, null, this);
+
+    if (cursors.left.isDown)
+    {
+        //  Move to the left
+        player.body.velocity.x = -150;
+
+        player.animations.play('left');
+        facing = 'left';
+        
+        //run and shoot
+        if(spaceBar.isDown)
+        {
+            //shoot 
+            fireBullet();
+        }
+    }
+    else if (cursors.right.isDown)
+    {
+        //  Move to the right
+        player.body.velocity.x = 150;
+
+        player.animations.play('right');
+        facing = 'right';
+        
+        //run and shoot
+        if(spaceBar.isDown)
+        {
+            //shoot 
+            fireBullet();
+        }
+    }
+    else if(spaceBar.isDown)
+    {
+        //shoot 
+        fireBullet();
+    
+    }
+    
+    else
+    {
+        //  Stand still
+        player.animations.stop();
+        if (facing == 'left'){
+            player.frame = 0;
+        }
+        else{
+            player.frame = 7;
+        }
+    }
+    
+    //  Allow the player to jump if they are touching the ground.
+    if (cursors.up.isDown && player.body.touching.down)
+    {
+        player.body.velocity.y = -350;
+    }
     
 }
 
