@@ -51,7 +51,7 @@ eurecaServer.exports.handshake = function()
 			var x = clients[cc].laststate ? clients[cc].laststate.x: 0;
 			var y = clients[cc].laststate ? clients[cc].laststate.y: 0;
 			
-			remote.spawnEnemy(clients[cc].id, 0, 0);
+			remote.spawnEnemy(clients[cc].id, x, y);
 		}
 	}
 }
@@ -63,11 +63,17 @@ eurecaServer.exports.handleKeys = function(keys)
 
 	for(var c in clients)
 	{
-		var remote = clients[c].remote;
-		remote.updateState(updatedClient.id, keys);
+		var remote = clients[c].remote; //Sets the client to update
+		remote.updateState(updatedClient.id, keys); //whenever a client presses a key, its keystrokes are sent to all clients
 
 		clients[c].laststate = keys;
 	}
 }
+//Client should call this every frame it can - simply forwards
+//the entire knowledge of server to each client when called.
 
 server.listen(8000);
+//while(1)
+//{
+//	console.log("PROMOTION!");
+//}

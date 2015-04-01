@@ -46,6 +46,16 @@ var eurecaClientSetup = function() {
 		var stckman = new StickMan(i, game, stickman);
 		stickmanList[i] = stckman;
 	}
+	eurecaClient.exports.updateState = function(id, state)
+	{
+		if(stickmanList[id]) {
+			stickmanList[id].cursor = state;
+			stickmanList[id].stickman.x = state.x;
+			stickmanList[id].stickman.y = state.y;
+			stickmanList[id].stickman.angle = state.angle;
+			stickmanList[id].update();
+		}
+	}
 } 
 
 //var game = new Phaser.Game(1600, 800, Phaser.AUTO, '', { preload: preload, create: create, update: update });
@@ -111,7 +121,26 @@ StickMan = function(index, game, player) {
 };
 
 StickMan.prototype.update = function() {
-	for (var i in this.input) this.cursor[i] = this.input[i];
+	var inputChanged = (
+			this.cursor.left != this.input.left ||
+			this.cursor.right != this.input.right ||
+			this.cursor.up != this.input.up ||
+			this.cursor.fire != this.input.fire
+	);
+
+	if(inputChanged)
+	{
+		//Send values to server
+		if(this.stickman.id == myId)
+		{
+			this.input.x = this.stickman.x;
+			this.input.y = this.stickman.y;
+			this.input.angle = this.stickman.angle;
+
+			eurecaServer.handleKeys(this.input);
+		}
+		//Right now does not immediately update gun rotation, not that we have a sprite for it
+	}
 
 	if(this.cursor.left)
 	{
@@ -315,12 +344,14 @@ function update() {
 			if(!stickmanList[j]) continue;
 			if(j!=i)
 			{
-				var targetStickman = stickmanList[j].tank;
+				var targetStickman = stickmanList[j].stickman;
 				game.physics.arcade.overlap(curBullets, targetStickman, bulletHitPlayer, null, this);
 			}
 			if(stickmanList[j].alive)
 			{
 				stickmanList[j].update();
+				game.physics.arcade.collide(stickmanList[j].stickman, platforms);
+				game.physics.arcade.overlap(stickmanList[j].stickman, guns, collectGun, null, this);
 			}
 		}
 	}

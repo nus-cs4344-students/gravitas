@@ -46,6 +46,7 @@ var eurecaClientSetup = function() {
 		var stckman = new StickMan(i, game, stickman);
 		stickmanList[i] = stckman;
 	}
+	//Server calls this to update state on client
 	eurecaClient.exports.updateState = function(id, state)
 	{
 		if(stickmanList[id]) {
@@ -237,7 +238,7 @@ function create() {
     
     //  enable arcade physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
-    
+	game.stage.disableVisibilityChange = true;
     //background for game
     var background = game.add.sprite(0,0,'sky');
     //  scalling background
@@ -324,6 +325,7 @@ function update() {
     
     //Do not update if client is not ready in Eureca
     if (!ready) return;
+	console.log("Update!");
 
 	player.input.left = cursors.left.isDown;
 	player.input.right = cursors.right.isDown;
