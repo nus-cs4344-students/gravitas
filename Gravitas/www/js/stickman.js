@@ -337,6 +337,7 @@ function update() {
 	
     game.physics.arcade.collide(stickman, platforms);
     game.physics.arcade.collide(guns, platforms);
+
     for(var i in stickmanList)
 	{
 		if(!stickmanList[i]) continue;
@@ -355,6 +356,7 @@ function update() {
 				stickmanList[j].update();
 				game.physics.arcade.collide(stickmanList[j].stickman, platforms);
 				game.physics.arcade.overlap(stickmanList[j].stickman, guns, collectGun, null, this);
+
 			}
 		}
 	}
@@ -362,6 +364,7 @@ function update() {
 
      //  Checks to see if the player overlaps with any of the guns, if he does call the collectGun function
     game.physics.arcade.overlap(stickman, guns, collectGun, null, this);
+    game.physics.arcade.collide(bullets, platforms, destroyBullets, null, this);
     
 }
 
@@ -374,6 +377,12 @@ function collectGun (player, gun) {
 
 
 }
+
+function destroyBullets(bullets,platforms){
+       
+    bullets.kill();
+}
+
 
 function fireBullet () {
     // Ensure that player has a gun before he is able to shoot  
