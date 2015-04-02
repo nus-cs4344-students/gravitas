@@ -24,6 +24,9 @@ var eurecaClientSetup = function() {
         eurecaServer = proxy;
 	});
 
+    //All methods defined under the exports namespace are available
+    //for remote process calling (Server is able to call these client functions)
+    
 	eurecaClient.exports.setId = function(id)
 	{
 		myId = id;
@@ -138,7 +141,11 @@ StickMan.prototype.update = function() {
 			this.input.x = this.stickman.x;
 			this.input.y = this.stickman.y;
 			this.input.angle = this.stickman.angle;
-
+            
+            // whenever there is a change in user input, the client will call
+            // the server side handleKeys function. The handleKeys function will 
+            // in turn invoke the client updateState function. The updateState function
+            // will then update all the stickmans in a client's game.
 			eurecaServer.handleKeys(this.input);
 		}
 		//Right now does not immediately update gun rotation, not that we have a sprite for it

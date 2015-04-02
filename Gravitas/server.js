@@ -10,7 +10,10 @@ app.use(express.static(__dirname));
 var EurecaServer = require('eureca.io').EurecaServer;
 
 //create an instance of EurecaServer
+// Inform Eureca.io that the following client functions are trusted client functions
+// If we do not do this, eureca.io will not call these functions
 var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState']});
+// client list object to hold client data
 var clients = [];
 //attach eureca.io to our http server
 eurecaServer.attach(server);
@@ -21,8 +24,11 @@ eurecaServer.attach(server);
 //detect client connection
 eurecaServer.onConnect(function (conn) {    
     console.log('New Client id=%s ', conn.id, conn.remoteAddress);
+    //the getClient method provide a proxy allowing the server to call remote client function
 	var remote = eurecaServer.getClient(conn.id);
+    //store the client details
 	clients[conn.id] = {id:conn.id, remote:remote};
+    //call setId which is defined in the client side
 	remote.setId(conn.id);
 });
 
@@ -55,6 +61,10 @@ eurecaServer.exports.handshake = function()
 		}
 	}
 }
+ // whenever there is a change in user input, the client will call
+// the server side handleKeys function. The handleKeys function will 
+// in turn invoke the client updateState function. The updateState function
+// will then update all the stickmans in a client's game.
 
 eurecaServer.exports.handleKeys = function(keys)
 {
