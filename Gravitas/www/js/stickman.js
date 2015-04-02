@@ -42,11 +42,11 @@ var eurecaClientSetup = function() {
 	eurecaClient.exports.spawnEnemy = function(i, x, y)
 	{
 		if (i == myId) return;
-		console.log('SPAWN');
-		var stckman = new StickMan(i, game, stickman);
+		console.log('SPAWN new stickman at ',x,' ',y);
+		var stckman = new StickMan(i, game, stickman, x, y); //NOTE SPELLING not that it matters since this is enclosed
 		stickmanList[i] = stckman;
 	}
-	//Server calls this to update state on client
+	//Server calls this to make clients update their state; this function is called x times for each stickman in the list
 	eurecaClient.exports.updateState = function(id, state)
 	{
 		if(stickmanList[id]) {
@@ -64,7 +64,7 @@ var eurecaClientSetup = function() {
 //to Set up eurecaclient
 var game = new Phaser.Game(1600, 800, Phaser.AUTO, '', { preload: preload, create: eurecaClientSetup, update: update});
 
-StickMan = function(index, game, player) {
+StickMan = function(index, game, player, serverx, servery) {
 	this.cursor = {
 		left:false,
 		right: false,
@@ -79,17 +79,18 @@ StickMan = function(index, game, player) {
 		fire:false
 	}
 
-	var x = 0;
-	var y = 0;
+	var x = serverx;
+	var y = servery;
 
+	
 	this.game = game;
 	this.health = 30;
 	this.player = player;
 	this.bullets = game.add.group();
 	this.bullets.enableBody = true;
 	this.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-	this.bullets.createMultiple(20, 'bullet', 0, false);
-	this.bullets.setAll('anchor.x', 0.5);
+	this.bullets.createMultiple(20, 'bullet', 0, false); //quantity, key, frame, default exists state (false, since it doesn't exist until created).
+	this.bullets.setAll('anchor.x', 0.5); 
 	this.bullets.setAll('anchor.y', 0.5);
 	this.bullets.setAll('outOfBoundsKill', true);
 	this.bullets.setAll('checkWorldBounds', true);
@@ -255,7 +256,7 @@ function create() {
     // Scale it to fit the width of the game (the original sprite is 400x32 in size)
     ground.scale.setTo(4, 2);
     
-    //  This stops it from falling away when you jump on it
+   //  This stops it from falling away when you jump on it
     ground.body.immovable = true;
     
     // bottom ledge
