@@ -16,6 +16,7 @@ var nextFire = 0;
 var ready = false;
 var eurecaServer;
 //this function will handle client communication with the server
+//All these functions are called by the server
 var eurecaClientSetup = function() {
 	//create an instance of eureca.io client
 	var eurecaClient = new Eureca.Client();
@@ -26,14 +27,16 @@ var eurecaClientSetup = function() {
 
     //All methods defined under the exports namespace are available
     //for remote process calling (Server is able to call these client functions)
-    
+    //Set player ID from server, create the game, run server handshake. 
 	eurecaClient.exports.setId = function(id)
 	{
 		myId = id;
+		console.log('This player id is ', id);
 		create();
 		eurecaServer.handshake();
 		ready = true;
 	}
+	//When a stickman dies on the server, send the kill notification
 	eurecaClient.exports.kill = function(id)
 	{
 		if(stickmanList[id])
@@ -42,10 +45,12 @@ var eurecaClientSetup = function() {
 			console.log('killing ', id, stickmanList[id]);
 		}
 	}
+	//Spawn another client, provided its not this client itself, indicating error.
 	eurecaClient.exports.spawnEnemy = function(i, x, y)
 	{
 		if (i == myId) return;
 		console.log('SPAWN new stickman at ',x,' ',y);
+		console.log('ID is ', i);
 		var stckman = new StickMan(i, game, stickman, x, y); //NOTE SPELLING not that it matters since this is enclosed
 		stickmanList[i] = stckman;
 	}
@@ -53,7 +58,7 @@ var eurecaClientSetup = function() {
 	eurecaClient.exports.updateState = function(id, state)
 	{
 		if(stickmanList[id]) {
-			stickmanList[id].cursor = state;
+			stickmanList[id].cursor = state; //left/right/up/fire states
 			stickmanList[id].stickman.x = state.x;
 			stickmanList[id].stickman.y = state.y;
 			stickmanList[id].stickman.angle = state.angle;
@@ -81,7 +86,8 @@ StickMan = function(index, game, player, serverx, servery) {
 		up:false,
 		fire:false
 	}
-
+	//Zero if originally not present on server, as specified in server.js;
+	//Other values if spawned.
 	var x = serverx;
 	var y = servery;
 
@@ -95,11 +101,12 @@ StickMan = function(index, game, player, serverx, servery) {
 	this.bullets.createMultiple(20, 'bullet', 0, false); //quantity, key, frame, default exists state (false, since it doesn't exist until created).
 	this.bullets.setAll('anchor.x', 0.5); 
 	this.bullets.setAll('anchor.y', 0.5);
+	//Kill bullets when they leave the boundaries of the world
 	this.bullets.setAll('outOfBoundsKill', true);
 	this.bullets.setAll('checkWorldBounds', true);
 
 	this.currentSpeed = 0;
-	this.fireRate = 500;
+	this.fireRate = 500; //Milliseconds before another firing
 	this.nextFire = 0;
 	this.alive = true;
 
@@ -121,7 +128,6 @@ StickMan = function(index, game, player, serverx, servery) {
     this.stickman.animations.add('left', [0, 1, 2, 3], 10, true);
     this.stickman.animations.add('right', [5, 6, 7, 8], 10, true);
 
-
 	game.physics.arcade.velocityFromRotation(this.stickman.rotation, 0, this.stickman.body.velocity);
 };
 
@@ -141,12 +147,18 @@ StickMan.prototype.update = function() {
 			this.input.x = this.stickman.x;
 			this.input.y = this.stickman.y;
 			this.input.angle = this.stickman.angle;
+<<<<<<< HEAD
             
             // whenever there is a change in user input, the client will call
             // the server side handleKeys function. The handleKeys function will 
             // in turn invoke the client updateState function. The updateState function
             // will then update all the stickmans in a client's game.
+=======
+			console.log("Angle is", this.stickman.angle);
+>>>>>>> origin/Rudimentary-multiplayer
 			eurecaServer.handleKeys(this.input);
+			//Besides these three values, tx and ty are updated.
+			//angle is not currently useful, and should always be 0.
 		}
 		//Right now does not immediately update gun rotation, not that we have a sprite for it
 	}
@@ -154,7 +166,6 @@ StickMan.prototype.update = function() {
 	if(this.cursor.left)
 	{
 		this.stickman.body.velocity.x = -150;
-
 		this.stickman.animations.play('left');
 		this.facing = 'left';
 	}
@@ -181,15 +192,16 @@ StickMan.prototype.update = function() {
 	{
 		this.stickman.body.velocity.y = -350;
 	}
-	if (this.cursor.fire)
+	if (this.cursor.fire) //Fire in the direction of the cursor position 
 	{
-		this.fire({x:this.cursor.tx, y:this.cursor.ty});
+		this.fire({x:this.cursor.tx, y:this.cursor.ty}); //Values to be sent to server include these, as part of this.input as declared in update() 
 	}
 	
 }
 
 StickMan.prototype.fire = function(target)
 {
+	//Fire only when the interval calls for it
 	if(!this.alive) return;
 	if(this.game.time.now > this.nextFire && this.bullets.countDead() > 0)
 	{
@@ -360,7 +372,7 @@ function update() {
 			}
 			if(stickmanList[j].alive)
 			{
-				stickmanList[j].update();
+				stickmanList[j].update(); //Based on last known key states, update all alive stickmen
 				game.physics.arcade.collide(stickmanList[j].stickman, platforms);
 				game.physics.arcade.overlap(stickmanList[j].stickman, guns, collectGun, null, this);
 
