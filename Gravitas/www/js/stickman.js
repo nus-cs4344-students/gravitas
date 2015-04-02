@@ -98,11 +98,12 @@ StickMan = function(index, game, player, serverx, servery) {
 	this.bullets.createMultiple(20, 'bullet', 0, false); //quantity, key, frame, default exists state (false, since it doesn't exist until created).
 	this.bullets.setAll('anchor.x', 0.5); 
 	this.bullets.setAll('anchor.y', 0.5);
+	//Kill bullets when they leave the boundaries of the world
 	this.bullets.setAll('outOfBoundsKill', true);
 	this.bullets.setAll('checkWorldBounds', true);
 
 	this.currentSpeed = 0;
-	this.fireRate = 500;
+	this.fireRate = 500; //Milliseconds before another firing
 	this.nextFire = 0;
 	this.alive = true;
 
@@ -143,8 +144,10 @@ StickMan.prototype.update = function() {
 			this.input.x = this.stickman.x;
 			this.input.y = this.stickman.y;
 			this.input.angle = this.stickman.angle;
-
+			console.log("Angle is", this.stickman.angle);
 			eurecaServer.handleKeys(this.input);
+			//Besides these three values, tx and ty are updated.
+			//angle is not currently useful, and should always be 0.
 		}
 		//Right now does not immediately update gun rotation, not that we have a sprite for it
 	}
@@ -152,7 +155,6 @@ StickMan.prototype.update = function() {
 	if(this.cursor.left)
 	{
 		this.stickman.body.velocity.x = -150;
-
 		this.stickman.animations.play('left');
 		this.facing = 'left';
 	}
@@ -188,6 +190,7 @@ StickMan.prototype.update = function() {
 
 StickMan.prototype.fire = function(target)
 {
+	//Fire only when the interval calls for it
 	if(!this.alive) return;
 	if(this.game.time.now > this.nextFire && this.bullets.countDead() > 0)
 	{
@@ -358,7 +361,7 @@ function update() {
 			}
 			if(stickmanList[j].alive)
 			{
-				stickmanList[j].update();
+				stickmanList[j].update(); //Based on last known key states, update all alive stickmen
 				game.physics.arcade.collide(stickmanList[j].stickman, platforms);
 				game.physics.arcade.overlap(stickmanList[j].stickman, guns, collectGun, null, this);
 
