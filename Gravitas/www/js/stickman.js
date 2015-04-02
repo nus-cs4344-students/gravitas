@@ -16,6 +16,7 @@ var nextFire = 0;
 var ready = false;
 var eurecaServer;
 //this function will handle client communication with the server
+//All these functions are called by the server
 var eurecaClientSetup = function() {
 	//create an instance of eureca.io client
 	var eurecaClient = new Eureca.Client();
@@ -23,14 +24,16 @@ var eurecaClientSetup = function() {
 	eurecaClient.ready(function (proxy) {		
         eurecaServer = proxy;
 	});
-
+	//Set player ID from server, create the game, run server handshake. 
 	eurecaClient.exports.setId = function(id)
 	{
 		myId = id;
+		console.log('This player id is ', id);
 		create();
 		eurecaServer.handshake();
 		ready = true;
 	}
+	//When a stickman dies on the server, send the kill notification
 	eurecaClient.exports.kill = function(id)
 	{
 		if(stickmanList[id])
@@ -39,10 +42,12 @@ var eurecaClientSetup = function() {
 			console.log('killing ', id, stickmanList[id]);
 		}
 	}
+	//Spawn another client, provided its not this client itself, indicating error.
 	eurecaClient.exports.spawnEnemy = function(i, x, y)
 	{
 		if (i == myId) return;
 		console.log('SPAWN new stickman at ',x,' ',y);
+		console.log('ID is ', i);
 		var stckman = new StickMan(i, game, stickman, x, y); //NOTE SPELLING not that it matters since this is enclosed
 		stickmanList[i] = stckman;
 	}
@@ -50,7 +55,7 @@ var eurecaClientSetup = function() {
 	eurecaClient.exports.updateState = function(id, state)
 	{
 		if(stickmanList[id]) {
-			stickmanList[id].cursor = state;
+			stickmanList[id].cursor = state; //left/right/up/fire states
 			stickmanList[id].stickman.x = state.x;
 			stickmanList[id].stickman.y = state.y;
 			stickmanList[id].stickman.angle = state.angle;
@@ -78,7 +83,8 @@ StickMan = function(index, game, player, serverx, servery) {
 		up:false,
 		fire:false
 	}
-
+	//Zero if originally not present on server, as specified in server.js;
+	//Other values if spawned.
 	var x = serverx;
 	var y = servery;
 
@@ -117,7 +123,6 @@ StickMan = function(index, game, player, serverx, servery) {
     // walking right or left
     this.stickman.animations.add('left', [0, 1, 2, 3], 10, true);
     this.stickman.animations.add('right', [5, 6, 7, 8], 10, true);
-
 
 	game.physics.arcade.velocityFromRotation(this.stickman.rotation, 0, this.stickman.body.velocity);
 };
@@ -174,9 +179,9 @@ StickMan.prototype.update = function() {
 	{
 		this.stickman.body.velocity.y = -350;
 	}
-	if (this.cursor.fire)
+	if (this.cursor.fire) //Fire in the direction of the cursor position 
 	{
-		this.fire({x:this.cursor.tx, y:this.cursor.ty});
+		this.fire({x:this.cursor.tx, y:this.cursor.ty}); //Values to be sent to server include these, as part of this.input as declared in update() 
 	}
 	
 }
