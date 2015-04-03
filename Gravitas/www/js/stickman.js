@@ -228,7 +228,7 @@ function preload() {
     
     game.load.image('sky', 'www/assets/sky2.png');
     game.load.image('ground', 'www/assets/platform.png');
-    game.load.image('gun', 'www/assets/smalltempgun.png');
+    game.load.image('gun', 'www/assets/smallgun1.png');
     game.load.image('bullet', 'www/assets/pbullet.gif');
     //game.load.spritesheet('dude', 'www/assets/dude.png', 32, 48); 
     game.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48);
@@ -311,13 +311,13 @@ function create() {
     guns.enableBody = true;
 
 
-    for (var i = 0; i < 4; i++)
+    for (var i = 1; i < 4; i++)
     {
-        var gun = guns.create(i * 250, 277, 'gun');
+        var gun = guns.create(i * 250, 274, 'gun');
     }
     
-    gun = guns.create(1200, 475, 'gun');
-    gun = guns.create(850, 77, 'gun');
+    gun = guns.create(1200, 474, 'gun');
+    gun = guns.create(850, 74, 'gun');
 	
     /*
     //bullets
