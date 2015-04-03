@@ -147,15 +147,13 @@ StickMan.prototype.update = function() {
 			this.input.x = this.stickman.x;
 			this.input.y = this.stickman.y;
 			this.input.angle = this.stickman.angle;
-<<<<<<< HEAD
-            
+
             // whenever there is a change in user input, the client will call
             // the server side handleKeys function. The handleKeys function will 
             // in turn invoke the client updateState function. The updateState function
             // will then update all the stickmans in a client's game.
-=======
+
 			console.log("Angle is", this.stickman.angle);
->>>>>>> origin/Rudimentary-multiplayer
 			eurecaServer.handleKeys(this.input);
 			//Besides these three values, tx and ty are updated.
 			//angle is not currently useful, and should always be 0.
@@ -232,7 +230,8 @@ function preload() {
     game.load.image('ground', 'www/assets/platform.png');
     game.load.image('gun', 'www/assets/smalltempgun.png');
     game.load.image('bullet', 'www/assets/pbullet.gif');
-    game.load.spritesheet('dude', 'www/assets/dude.png', 32, 48); 
+    //game.load.spritesheet('dude', 'www/assets/dude.png', 32, 48); 
+    game.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48);
     
 
 }
