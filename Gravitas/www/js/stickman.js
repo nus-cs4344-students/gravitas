@@ -93,7 +93,7 @@ StickMan = function(index, game, player, serverx, servery) {
 
 	
 	this.game = game;
-	this.health = 30;
+	//this.health = 30;
 	this.player = player;
 	this.bullets = game.add.group();
 	this.bullets.enableBody = true;
@@ -124,6 +124,14 @@ StickMan = function(index, game, player, serverx, servery) {
     this.stickman.body.gravity.y = 200;
     this.stickman.body.collideWorldBounds = true;
 
+    //stats
+    var style = { font: "20px Arial", fill: "#fff"};
+    this.stickman.health = 100;
+    this.game.add.text(10, 20, "Health:", style);
+    this.healthText = this.game.add.text(80, 20, "", style);
+    //this.refreshStats();
+
+
     // walking right or left
     this.stickman.animations.add('left', [0, 1, 2, 3], 10, true);
     this.stickman.animations.add('right', [5, 6, 7, 8], 10, true);
@@ -147,6 +155,8 @@ StickMan.prototype.update = function() {
 			this.input.x = this.stickman.x;
 			this.input.y = this.stickman.y;
 			this.input.angle = this.stickman.angle;
+
+			this.healthText.text = this.stickman.health;
 
             // whenever there is a change in user input, the client will call
             // the server side handleKeys function. The handleKeys function will 
@@ -190,7 +200,7 @@ StickMan.prototype.update = function() {
 	{
 		this.stickman.body.velocity.y = -350;
 	}
-	if (this.cursor.fire) //Fire in the direction of the cursor position 
+	if (this.cursor.fire && this.stickman.alive != false) //Fire in the direction of the cursor position 
 	{
 		this.fire({x:this.cursor.tx, y:this.cursor.ty}); //Values to be sent to server include these, as part of this.input as declared in update() 
 	}
@@ -200,7 +210,7 @@ StickMan.prototype.update = function() {
 StickMan.prototype.fire = function(target)
 {
 	//Fire only when the interval calls for it
-	if(!this.alive) return;
+	if(!stickman.alive) return;
 	if(this.game.time.now > this.nextFire && this.bullets.countDead() > 0)
 	{
 		this.nextFire = this.game.time.now + this.fireRate;
@@ -352,6 +362,7 @@ function update() {
 	player.input.fire = game.input.activePointer.isDown;
 	player.input.tx = game.input.x+ game.camera.x;
 	player.input.ty = game.input.y+ game.camera.y;
+
 	
     game.physics.arcade.collide(stickman, platforms);
     game.physics.arcade.collide(guns, platforms);
@@ -429,5 +440,6 @@ function fireBullet () {
 
 
 function bulletHitPlayer(player, bullet){
+	player.kill();
     bullet.kill();
 }
