@@ -61,6 +61,7 @@ var eurecaClientSetup = function() {
 			stickmanList[id].cursor = state; //left/right/up/fire states
 			stickmanList[id].stickman.x = state.x;
 			stickmanList[id].stickman.y = state.y;
+			stickmanList[id].stickman.health = state.health;
 			stickmanList[id].stickman.angle = state.angle;
 			stickmanList[id].update();
 		}
@@ -117,19 +118,36 @@ StickMan = function(index, game, player, serverx, servery) {
 	this.stickman.body.immovable = false;
 	this.stickman.body.collideWorldBounds = true;
 
+
+
 	this.stickman.angle = 0;
+
+
 	    
     // player properties
     this.stickman.body.bounce.y = 0.2;
     this.stickman.body.gravity.y = 200;
     this.stickman.body.collideWorldBounds = true;
 
+    //this.stickman = game.add.group();
+    //this.stickman.enableBody = true;
+    //this.healthbar = game.add.sprite(this.stickman.body.x, this.stickman.body.y+5,'healthBar');
+    // Scale it to fit the width of the game (the original sprite is 400x32 in size)
+    
+   //  This stops it from falling away when you jump on it
+    //this.healthbar.anchor.set(0.5);
+   	//this.healthbar.body.immovable = false;
+	//this.healthbar.body.collideWorldBounds = true;
+	//healthBar.frame = 0;
+
+    
+
     //stats
     var style = { font: "20px Arial", fill: "#fff"};
     this.stickman.health = 100;
     this.game.add.text(10, 20, "Health:", style);
     this.healthText = this.game.add.text(80, 20, "", style);
-    //this.refreshStats();
+    //this.healthText.text = this.stickman.health;
 
 
     // walking right or left
@@ -155,7 +173,7 @@ StickMan.prototype.update = function() {
 			this.input.x = this.stickman.x;
 			this.input.y = this.stickman.y;
 			this.input.angle = this.stickman.angle;
-
+			this.input.health = this.stickman.health;
 			this.healthText.text = this.stickman.health;
 
             // whenever there is a change in user input, the client will call
@@ -240,6 +258,7 @@ function preload() {
     game.load.image('ground', 'www/assets/platform.png');
     game.load.image('gun', 'www/assets/smallgun1.png');
     game.load.image('bullet', 'www/assets/pbullet.gif');
+    game.load.spritesheet('healthBar','www/assets/healthbar.png' , 32,35.2);
     //game.load.spritesheet('dude', 'www/assets/dude.png', 32, 48); 
     game.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48);
     
@@ -440,6 +459,12 @@ function fireBullet () {
 
 
 function bulletHitPlayer(player, bullet){
-	player.kill();
+		
+	player.health = player.health - 10;
+
+	if (player.health <= 0){
+		player.kill();
+	}
     bullet.kill();
+
 }
