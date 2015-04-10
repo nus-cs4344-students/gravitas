@@ -2,18 +2,17 @@ var express = require('express')
   , app = express(app)
   , server = require('http').createServer(app);
 
+var Eureca = require('eureca.io');
 // serve static files from the current directory
 app.use(express.static(__dirname));
 
   
 //get EurecaServer class
-var Eureca = require('eureca.io');
 var eurecaServer = new Eureca.Server({allow:['setId', 'spawnEnemy', 'kill', 'updateState']});
 
 //create an instance of EurecaServer
 // Inform Eureca.io that the following client functions are trusted client functions
 // If we do not do this, eureca.io will not call these functions
-//var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState']});
 // client list object to hold client data
 var clients = [];
 //attach eureca.io to our http server
