@@ -61,7 +61,7 @@ eurecaServer.exports.handshake = function()
 			remote.spawnEnemy(clients[cc].id, x, y);
 		}
 	}
-}
+};
  // whenever there is a change in user input, the client will call
 // the server side handleKeys function. The handleKeys function will 
 // in turn invoke the client updateState function. The updateState function
@@ -79,12 +79,9 @@ eurecaServer.exports.handleKeys = function(keys)
 
 		clients[c].laststate = keys;
 	}
-}
+};
 //Client should call this every frame it can - simply forwards
 //the entire knowledge of server to each client when called.
 
 server.listen(8000);
-//while(1)
-//{
-//	console.log("PROMOTION!");
-//}
+
