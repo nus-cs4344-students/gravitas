@@ -24,9 +24,8 @@ var bullet;
 var bulletTime = 0;
 
 var ready = false;
-//var eurecaServer = new Eureca.Server();
-//var Eureca = require('eureca.io');
 var Game;
+var eurecaServer;
 
 StickMan = function(index, game, player, serverx, servery) {
     this.cursor = {
@@ -34,14 +33,14 @@ StickMan = function(index, game, player, serverx, servery) {
 		right: false,
 		up: false,
 		fire: false
-	}
+	};
 
 	this.input = {
 		left:false,
 		right:false,
 		up:false,
 		fire:false
-	}
+	};
 	//Zero if originally not present on server, as specified in server.js;
 	//Other values if spawned.
 	var x = serverx;
@@ -73,8 +72,7 @@ StickMan = function(index, game, player, serverx, servery) {
 	this.stickman.body.immovable = false;
 	this.stickman.body.collideWorldBounds = true;
 
-	this.stickman.angle = 0;
-	    
+	this.stickman.angle = 0;    
     // player properties
     this.stickman.body.bounce.y = 0.2;
     this.stickman.body.gravity.y = 200;
@@ -156,12 +154,12 @@ StickMan.prototype.update = function() {
 	{
 		this.stickman.body.velocity.y = -350;
 	}
-	if (this.cursor.fire && this.stickman.alive != false) //Fire in the direction of the cursor position 
+	if (this.cursor.fire && this.stickman.alive !== false) //Fire in the direction of the cursor position 
 	{
 		this.fire({x:this.cursor.tx, y:this.cursor.ty}); //Values to be sent to server include these, as part of this.input as declared in update() 
 	}
 	
-}
+};
 
 StickMan.prototype.fire = function(target)
 {
@@ -174,13 +172,13 @@ StickMan.prototype.fire = function(target)
 		bullet.reset(this.stickman.x, this.stickman.y);
 		bullet.rotation = this.game.physics.arcade.moveToObject(bullet, target, 500);
 	}
-}
+};
 
 StickMan.prototype.kill = function()
 {
 	this.alive = false;
 	this.stickman.kill();
-}
+};
 	
 
 Gravitas.StickMan = function(game){
@@ -217,7 +215,7 @@ Gravitas.ClientSetup = function(){
 		Gravitas.Clientcreate();
 		eurecaServer.handshake();
 		ready = true;
-	}
+	};
 	//When a stickman dies on the server, send the kill notification
 	eurecaClient.exports.kill = function(id)
 	{
@@ -226,7 +224,7 @@ Gravitas.ClientSetup = function(){
 			stickmanList[id].kill();
 			console.log('killing ', id, stickmanList[id]);
 		}
-	}
+	};
 	//Spawn another client, provided its not this client itself, indicating error.
 	eurecaClient.exports.spawnEnemy = function(i, x, y)
 	{
@@ -235,7 +233,7 @@ Gravitas.ClientSetup = function(){
 		console.log('ID is ', i);
 		var stckman = new StickMan(i, Game, stickman, x, y); //NOTE SPELLING not that it matters since this is enclosed
 		stickmanList[i] = stckman;
-	}
+	};
 	//Server calls this to make clients update their state; this function is called x times for each stickman in the list
 	eurecaClient.exports.updateState = function(id, state)
 	{
@@ -246,7 +244,7 @@ Gravitas.ClientSetup = function(){
 			stickmanList[id].stickman.angle = state.angle;
 			stickmanList[id].update();
 		}
-	}
+	};
 };
 
 Gravitas.Clientcreate = function(){
@@ -361,7 +359,7 @@ Gravitas.Clientupdate = function(){
                 if(j!=i)
                 {
                     var targetStickman = stickmanList[j].stickman;
-                    Game.physics.arcade.overlap(curBullets, targetStickman, Gravitas.bulletHitPlayer, null, this);
+                    Game.physics.arcade.overlap(curBullets, targetStickman, Gravitas.item.bulletHitPlayer, null, this);
                 }
                 if(stickmanList[j].alive)
                 {
@@ -381,19 +379,15 @@ Gravitas.Clientupdate = function(){
 
 
 Gravitas.item = {
- 	collectGun: function(player,gun){
-	    // Removes the gun from the screen
-    
+    collectGun: function(player,gun){
+        // Removes the gun from the screen  
         gun.kill();
         hasGun = 1;
 	
 	},
-
-	destroyBullets: function(bullets,platforms){
+    destroyBullets: function(bullets,platforms){
         bullets.kill();	
 	},
-        
-        
     fireBullets: function(){
          // Ensure that player has a gun before he is able to shoot  
         // To avoid players being allowed to fire too fast a time limit is set
@@ -420,30 +414,12 @@ Gravitas.item = {
         
     },
         
-   
-   /**     
-    bulletHitPlayer: function(){
-        player.health = player.health - 10;
 
-	   if (player.health <= 0){
-		  player.kill();
-	   }
-       bullet.kill();
-    
-    }
-    **/
-
-};
-
-Gravitas.bulletHitPlayer= function(bullet,player){
-    console.log("before:");
-
-    console.log(player.health);
+    bulletHitPlayer: function(bullet,player){
     player.health -=10;  
     if(player.health<= 0){
         player.kill();
       }
-    console.log("after:");
-    console.log(player.health);
     bullet.kill();
+},
 };
