@@ -24,8 +24,8 @@ var bullet;
 var bulletTime = 0;
 
 var ready = false;
-var eurecaServer;
-
+//var eurecaServer = new Eureca.Server();
+//var Eureca = require('eureca.io');
 var Game;
 
 StickMan = function(index, game, player, serverx, servery) {
