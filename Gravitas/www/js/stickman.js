@@ -24,8 +24,63 @@ var bullet;
 var bulletTime = 0;
 
 var ready = false;
-var Game;
+
 var eurecaServer;
+
+var GAME_WIDTH = 1600;
+var GAME_HEIGHT = 800;
+//this function will handle client communication with the server
+var eurecaClientSetup = function(){
+ 
+    //create an instance of eureca.io client
+    var eurecaClient = new Eureca.Client();
+    
+    eurecaClient.ready(function (proxy) {       
+        eurecaServer = proxy;
+    });
+
+    //All methods defined under the exports namespace are available
+    //for remote process calling (Server is able to call these client functions)
+    //Set player ID from server, create the game, run server handshake. 
+    eurecaClient.exports.setId = function(id)
+    {
+        myId = id;
+        console.log('This player id is ', id);
+        create();
+        eurecaServer.handshake(myId);
+        ready = true;
+    };
+    //When a stickman dies on the server, send the kill notification
+    eurecaClient.exports.kill = function(id)
+    {
+        if(stickmanList[id])
+        {
+            stickmanList[id].kill();
+            console.log('killing ', id, stickmanList[id]);
+        }
+    };
+    //Spawn another client, provided its not this client itself, indicating error.
+    eurecaClient.exports.spawnEnemy = function(i, x, y)
+    {
+        if (i == myId) return;
+        console.log('SPAWN new stickman at ',x,' ',y);
+        console.log('ID is ', i);
+        var stckman = new StickMan(i, game, stickman, x, y); //NOTE SPELLING not that it matters since this is enclosed
+        stickmanList[i] = stckman;
+    };
+    //Server calls this to make clients update their state; this function is called x times for each stickman in the list
+    eurecaClient.exports.updateState = function(id, state)
+    {
+        if(stickmanList[id]) {
+            stickmanList[id].cursor = state; //left/right/up/fire states
+            stickmanList[id].stickman.x = state.x;
+            stickmanList[id].stickman.y = state.y;
+            stickmanList[id].stickman.angle = state.angle;
+            stickmanList[id].update();
+        }
+    };  
+    
+}
 
 StickMan = function(index, game, player, serverx, servery) {
     this.cursor = {
@@ -179,91 +234,65 @@ StickMan.prototype.kill = function()
 	this.alive = false;
 	this.stickman.kill();
 };
-	
 
-Gravitas.StickMan = function(game){
-    Game = game;
-};
+var game = new Phaser.Game(1600, 800, Phaser.AUTO, '', { preload: preload, create: startgame, update: update});
 
 
-Gravitas.StickMan.prototype = {
-    create: function(){
-        Gravitas.ClientSetup();
-    },
-    update: function(){
-        Gravitas.Clientupdate();
-    }
-       
-};
+function startgame(){
+    // set scale options
+    
+    //eurecaClientSetup();
+    
+    game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    game.scale.pageAlignHorizontally = true;
+    game.scale.pageAlignVertically = true;
+    game.scale.setScreenSize(true);
+    
+    // display images
+    game.add.sprite((GAME_WIDTH-500)/2, 30, 'title');
+    game.add.sprite((GAME_WIDTH)/2-500, 350,'figure');
+    // add the button that will start the game
+    game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'button-start', eurecaClientSetup, 1, 0, 2);
 
-Gravitas.ClientSetup = function(){   
-    //console.log('eureca here');
-    //create an instance of eureca.io client
-	var eurecaClient = new Eureca.Client();
-	
-	eurecaClient.ready(function (proxy) {		
-        eurecaServer = proxy;
-	});
+}
 
-    //All methods defined under the exports namespace are available
-    //for remote process calling (Server is able to call these client functions)
-    //Set player ID from server, create the game, run server handshake. 
-	eurecaClient.exports.setId = function(id)
-	{
-		myId = id;
-		console.log('This player id is ', id);
-		Gravitas.Clientcreate();
-		eurecaServer.handshake();
-		ready = true;
-	};
-	//When a stickman dies on the server, send the kill notification
-	eurecaClient.exports.kill = function(id)
-	{
-		if(stickmanList[id])
-		{
-			stickmanList[id].kill();
-			console.log('killing ', id, stickmanList[id]);
-		}
-	};
-	//Spawn another client, provided its not this client itself, indicating error.
-	eurecaClient.exports.spawnEnemy = function(i, x, y)
-	{
-		if (i == myId) return;
-		console.log('SPAWN new stickman at ',x,' ',y);
-		console.log('ID is ', i);
-		var stckman = new StickMan(i, Game, stickman, x, y); //NOTE SPELLING not that it matters since this is enclosed
-		stickmanList[i] = stckman;
-	};
-	//Server calls this to make clients update their state; this function is called x times for each stickman in the list
-	eurecaClient.exports.updateState = function(id, state)
-	{
-		if(stickmanList[id]) {
-			stickmanList[id].cursor = state; //left/right/up/fire states
-			stickmanList[id].stickman.x = state.x;
-			stickmanList[id].stickman.y = state.y;
-			stickmanList[id].stickman.angle = state.angle;
-			stickmanList[id].update();
-		}
-	};
-};
+function preload(){
+     // preload the loading indicator first before anything else
+    game.load.image('preloaderBar', 'www/assets/loading-bar.png');
+    
+    // set background color and preload image
+    game.stage.backgroundColor = '#FFFFFF';
+   
+    game.load.image('title', 'www/assets/gravitaslogo.png');
+    game.load.image('figure', 'www/assets/stickman.png');
+    game.load.spritesheet('button-start', 'www/assets/button-start.png', 401, 143);       
+    
+    game.load.image('sky', 'www/assets/sky2.png');
+    game.load.image('ground', 'www/assets/platform.png');
+    game.load.image('gun', 'www/assets/smallgun1.png');
+    game.load.image('bullet', 'www/assets/pbullet.gif');
+    game.load.spritesheet('healthBar','www/assets/healthbar.png' , 32,35.2); 
+    game.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48);   
 
-Gravitas.Clientcreate = function(){
+}
+
+function create(){
         //  enable arcade physics system
-        Game.physics.startSystem(Phaser.Physics.ARCADE); 
-        Game.stage.disableVisibilityChange = true;
+        game.physics.startSystem(Phaser.Physics.ARCADE); 
+        game.stage.disableVisibilityChange = true;
        
-        var background = Game.add.sprite(0,0,'sky');
+        var background = game.add.sprite(0,0,'sky');
         //  scalling background
         background.scale.set(2,2);
 
         //  this group will contain all stage objects
-        platforms = Game.add.group();
+        platforms = game.add.group();
 
         // enable physics for any object that is created in this group
         platforms.enableBody = true;
 
         //  create the ground.
-        var ground = platforms.create(0, Game.world.height - 64, 'ground');
+        var ground = platforms.create(0, game.world.height - 64, 'ground');
         // Scale it to fit the width of the game (the original sprite is 400x32 in size)
         ground.scale.setTo(4, 2);
 
@@ -288,7 +317,7 @@ Gravitas.Clientcreate = function(){
 
         // player settings
         stickmanList = {};
-        player = new StickMan(myId, Game, stickman);
+        player = new StickMan(myId, game, stickman);
         stickmanList[myId] = player;
         stickman = player.stickman;
         stickman.x = 0;
@@ -298,7 +327,7 @@ Gravitas.Clientcreate = function(){
         // enable physics on player
         //game.physics.arcade.enable(player);
         //guns
-        guns = Game.add.group();
+        guns = game.add.group();
 
 
         guns.enableBody = true;
@@ -327,25 +356,25 @@ Gravitas.Clientcreate = function(){
         */
 
         //  controls.
-        cursors = Game.input.keyboard.createCursorKeys();
-        spaceBar = Game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+        cursors = game.input.keyboard.createCursorKeys();
+        spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 };
 
 
-Gravitas.Clientupdate = function(){
+function update(){
             //Do not update if client is not ready in Eureca
         if (!ready) return;
 
 		player.input.left = cursors.left.isDown;
         player.input.right = cursors.right.isDown;
         player.input.up = cursors.up.isDown;
-        player.input.fire = Game.input.activePointer.isDown;
-        player.input.tx = Game.input.x+ Game.camera.x;
-        player.input.ty = Game.input.y+ Game.camera.y;
+        player.input.fire = game.input.activePointer.isDown;
+        player.input.tx = game.input.x+ game.camera.x;
+        player.input.ty = game.input.y+ game.camera.y;
 
 
-        Game.physics.arcade.collide(stickman, platforms);
-        Game.physics.arcade.collide(guns, platforms);
+        game.physics.arcade.collide(stickman, platforms);
+        game.physics.arcade.collide(guns, platforms);
 
         for(var i in stickmanList)
         {
@@ -353,7 +382,7 @@ Gravitas.Clientupdate = function(){
             var curBullets = stickmanList[i].bullets;
             var curStickman = stickmanList[i].stickman;
 			//For every stickman, check if their bullets collide with platform.
-			Game.physics.arcade.collide(curBullets, platforms, Gravitas.item.destroyBullets, null, this);
+			game.physics.arcade.collide(curBullets, platforms, destroyBullets, null, this);
             for(var j in stickmanList)
             {
 				//For each stickman other than the current considered one, check if their bullet hit someone other than them
@@ -361,41 +390,44 @@ Gravitas.Clientupdate = function(){
                 if(j!=i)
                 {   
                     var targetStickman = stickmanList[j].stickman;
-                    Game.physics.arcade.overlap(curBullets, targetStickman, Gravitas.item.bulletHitPlayer, null, this);
+                    game.physics.arcade.overlap(curBullets, targetStickman, bulletHitPlayer, null, this);
 					               }
                 if(stickmanList[j].alive)
                 {
                     stickmanList[j].update(); //Based on last known key states, update all alive stickmen
-                    Game.physics.arcade.collide(stickmanList[j].stickman, platforms);
-                    Game.physics.arcade.overlap(stickmanList[j].stickman, guns, Gravitas.item.collectGun, null, this);
+                    game.physics.arcade.collide(stickmanList[j].stickman, platforms);
+                    game.physics.arcade.overlap(stickmanList[j].stickman, collectGun, null, this);
 
                 }
             }
         }
 
          //  Checks to see if the player overlaps with any of the guns, if he does call the collectGun function
-    Game.physics.arcade.overlap(stickman, guns, Gravitas.item.collectGun, null, this);
+    game.physics.arcade.overlap(stickman, guns, collectGun, null, this);
 	//Check to see if the bullets hit platforms; if so, destroy the bullets.
-        Game.physics.arcade.collide(bullets, platforms, Gravitas.item.destroyBullets, null, this);  
+        game.physics.arcade.collide(bullets, platforms, destroyBullets, null, this);  
         
-};     
+};   
 
 
-Gravitas.item = {
-    collectGun: function(player,gun){
+
+function collectGun(player,gun){
         // Removes the gun from the screen  
         gun.kill();
         hasGun = 1;
-	
-	},
-    destroyBullets: function(bullets,platforms){
-        bullets.kill();	
-	},
-    fireBullets: function(){
+    
+};  
+
+function destroyBullets(bullets,platforms){
+        bullets.kill(); 
+}
+
+
+function fireBullets(){
          // Ensure that player has a gun before he is able to shoot  
         // To avoid players being allowed to fire too fast a time limit is set
         if(hasGun == 1){
-            if (Game.time.now > bulletTime)
+            if (game.time.now > bulletTime)
             {
                 //  Grab the first bullet we can from the pool
                 //bullet = bullets.getFirstExists(false);
@@ -403,26 +435,27 @@ Gravitas.item = {
                 {
                     bullet = bullets.create(player.x+20, player.y+20, 'bullet');
                     bullet.body.velocity.x = 400;
-                    bulletTime = Game.time.now + 200;
+                    bulletTime = game.time.now + 200;
                 }
             
                 if (facing == 'left')
                 {
                     bullet = bullets.create(player.x-20, player.y+20, 'bullet');
                     bullet.body.velocity.x = -400;
-                bulletTime = Game.time.now + 200;
+                bulletTime = game.time.now + 200;
                 }
             }
         }
         
-    },
-        
+}  
 
-    bulletHitPlayer: function(bullet,player){
-    player.health -=10;  
-    if(player.health<= 0){
+function bulletHitPlayer(player, bullet){
+        
+    player.health = player.health - 10;
+
+    if (player.health <= 0){
         player.kill();
-      }
+    }
     bullet.kill();
-},
-};
+
+}
