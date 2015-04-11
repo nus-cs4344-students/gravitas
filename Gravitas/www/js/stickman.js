@@ -335,9 +335,8 @@ Gravitas.Clientcreate = function(){
 Gravitas.Clientupdate = function(){
             //Do not update if client is not ready in Eureca
         if (!ready) return;
-        console.log("Update!");
 
-        player.input.left = cursors.left.isDown;
+		player.input.left = cursors.left.isDown;
         player.input.right = cursors.right.isDown;
         player.input.up = cursors.up.isDown;
         player.input.fire = Game.input.activePointer.isDown;
@@ -353,14 +352,17 @@ Gravitas.Clientupdate = function(){
             if(!stickmanList[i]) continue;
             var curBullets = stickmanList[i].bullets;
             var curStickman = stickmanList[i].stickman;
+			//For every stickman, check if their bullets collide with platform.
+			Game.physics.arcade.collide(curBullets, platforms, Gravitas.item.destroyBullets, null, this);
             for(var j in stickmanList)
             {
+				//For each stickman other than the current considered one, check if their bullet hit someone other than them
                 if(!stickmanList[j]) continue;
                 if(j!=i)
-                {
+                {   
                     var targetStickman = stickmanList[j].stickman;
                     Game.physics.arcade.overlap(curBullets, targetStickman, Gravitas.item.bulletHitPlayer, null, this);
-                }
+					               }
                 if(stickmanList[j].alive)
                 {
                     stickmanList[j].update(); //Based on last known key states, update all alive stickmen
@@ -372,7 +374,8 @@ Gravitas.Clientupdate = function(){
         }
 
          //  Checks to see if the player overlaps with any of the guns, if he does call the collectGun function
-        Game.physics.arcade.overlap(stickman, guns, Gravitas.item.collectGun, null, this);
+    Game.physics.arcade.overlap(stickman, guns, Gravitas.item.collectGun, null, this);
+	//Check to see if the bullets hit platforms; if so, destroy the bullets.
         Game.physics.arcade.collide(bullets, platforms, Gravitas.item.destroyBullets, null, this);  
         
 };     
