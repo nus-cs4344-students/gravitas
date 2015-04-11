@@ -213,7 +213,7 @@ Gravitas.ClientSetup = function(){
 		myId = id;
 		console.log('This player id is ', id);
 		Gravitas.Clientcreate();
-		eurecaServer.handshake(myId);
+		eurecaServer.handshake();
 		ready = true;
 	};
 	//When a stickman dies on the server, send the kill notification

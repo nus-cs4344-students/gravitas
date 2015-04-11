@@ -47,23 +47,17 @@ eurecaServer.onDisconnect(function (conn) {
 	}
 });
 
-eurecaServer.exports.handshake = function(id)
+eurecaServer.exports.handshake = function()
 {
 	for(var c in clients)
 	{
 		var remote = clients[c].remote;
-		remote.spawnEnemy(id, x, y); //All old guys spawn the new guy.
-		
-		if(c == id) //Only update the new guy with all the old guys' states
-		{
-			var newguy = clients[id].remote;
 		for(var cc in clients)
 		{
 			var x = clients[cc].laststate ? clients[cc].laststate.x: 0;
 			var y = clients[cc].laststate ? clients[cc].laststate.y: 0;
 			
-			newguy.spawnEnemy(clients[cc].id, x, y);
-		}
+			remote.spawnEnemy(clients[cc].id, x, y);
 		}
 	}
 };
@@ -82,8 +76,8 @@ eurecaServer.exports.handleKeys = function(keys)
 		var remote = clients[c].remote; //Sets the client to update
 		remote.updateState(updatedClient.id, keys); //whenever a client presses a key, its keystrokes are sent to all clients
 
+		clients[c].laststate = keys;
 	}
-	updatedClient.laststate = keys;
 };
 //Client should call this every frame it can - simply forwards
 //the entire knowledge of server to each client when called.
