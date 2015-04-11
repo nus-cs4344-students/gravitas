@@ -47,35 +47,26 @@ eurecaServer.onDisconnect(function (conn) {
 	}
 });
 
-eurecaServer.exports.handshake = function(id)
+eurecaServer.exports.handshake = function()
 {
-	//For all old clients, spawn a new enemy at 0,0 unless it is the client who initiated this
 	for(var c in clients)
 	{
-		var remotef = clients[c].remote;
-		remotef.spawnEnemy(id, 0, 0);
-		var newclient = clients[id].remote;
-		if(c == id)
-		{
-			console.log("Found new client!");
+		var remote = clients[c].remote;
 		for(var cc in clients)
 		{
-			var x = clients[cc].laststate ? clients[cc].laststate.x : 0;
-			var y = clients[cc].laststate ? clients[cc].laststate.y : 0;
-			console.log("Spawned new enemy with id ",cc,"at ",x," ",y);
-			newclient.spawnEnemy(cc, x, y);
+			var x = clients[cc].laststate ? clients[cc].laststate.x: 0;
+			var y = clients[cc].laststate ? clients[cc].laststate.y: 0;
+			
+			remote.spawnEnemy(clients[cc].id, x, y);
 		}
-		}	
 	}
-	//For the new client, spawn all existing enemies
-	
 };
  // whenever there is a change in user input, the client will call
 // the server side handleKeys function. The handleKeys function will 
 // in turn invoke the client updateState function. The updateState function
 // will then update all the stickmans in a client's game.
 
-eurecaServer.exports.handleKeys = function(state)
+eurecaServer.exports.handleKeys = function(keys)
 {
 	var conn = this.connection;
 	var updatedClient = clients[conn.id];
@@ -83,10 +74,9 @@ eurecaServer.exports.handleKeys = function(state)
 	for(var c in clients)
 	{
 		var remote = clients[c].remote; //Sets the client to update
-		remote.updateState(updatedClient.id, state); //whenever a client presses a key, its keystrokes are sent to all clients
+		remote.updateState(updatedClient.id, keys); //whenever a client presses a key, its keystrokes are sent to all clients
 
 		clients[c].laststate = keys;
-		console.log(clients[c].laststate);
 	}
 };
 //Client should call this every frame it can - simply forwards

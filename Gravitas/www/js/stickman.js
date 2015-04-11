@@ -160,7 +160,7 @@ StickMan.prototype.update = function() {
 	}
 	
 };
-//This is the function being called, not fireBullet in items right now.
+
 StickMan.prototype.fire = function(target)
 {
 	//Fire only when the interval calls for it
@@ -213,6 +213,7 @@ Gravitas.ClientSetup = function(){
 		myId = id;
 		console.log('This player id is ', id);
 		Gravitas.Clientcreate();
+		eurecaServer.handshake();
 		ready = true;
 	};
 	//When a stickman dies on the server, send the kill notification
@@ -228,11 +229,11 @@ Gravitas.ClientSetup = function(){
 	eurecaClient.exports.spawnEnemy = function(i, x, y)
 	{
 		if (i == myId) return;
-		console.log('SPAWN new stickman at ',x,' ',y,' with id ', i);
+		console.log('SPAWN new stickman at ',x,' ',y);
+		console.log('ID is ', i);
 		var stckman = new StickMan(i, Game, stickman, x, y); //NOTE SPELLING not that it matters since this is enclosed
 		stickmanList[i] = stckman;
 	};
-	
 	//Server calls this to make clients update their state; this function is called x times for each stickman in the list
 	eurecaClient.exports.updateState = function(id, state)
 	{
@@ -293,6 +294,10 @@ Gravitas.Clientcreate = function(){
         stickman.x = 0;
         stickman.y = 0;
         bullets = player.bullets;
+        //player = game.add.sprite(32, game.world.height - 150, 'dude');
+        // enable physics on player
+        //game.physics.arcade.enable(player);
+        //guns
         guns = Game.add.group();
 
 
@@ -307,8 +312,20 @@ Gravitas.Clientcreate = function(){
         gun = guns.create(1200, 474, 'gun');
         gun = guns.create(850, 74, 'gun');
 
+        /*
+        //bullets
+        bullets = game.add.group();
+        //game.physics.enable(bullets,Phaser.Physics.ARCADE);
+        bullets.enableBody = true;
+        bullets.physicsBodyType = Phaser.Physics.ARCADE;
+        //bullets.createMultiple(30, 'bullet', 0, false);
+        bullets.setAll('anchor.x', 0.5);
+        bullets.setAll('anchor.y', 0.5);
+        bullets.setAll('outOfBoundsKill', true);
+        bullets.setAll('checkWorldBounds', true);
 
-		eurecaServer.handshake(myId);
+        */
+
         //  controls.
         cursors = Game.input.keyboard.createCursorKeys();
         spaceBar = Game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -333,23 +350,26 @@ Gravitas.Clientupdate = function(){
         for(var i in stickmanList)
         {
             if(!stickmanList[i]) continue;
-			
-            var curBullets = stickmanList[i].bullets; //This stickman's bullets in the air
-            var curStickman = stickmanList[i].stickman; 
-			stickmanList[i].update(); //Update this stickman's position and moves
-			//Check if this stickman collides or overlaps with anything
+            var curBullets = stickmanList[i].bullets;
+            var curStickman = stickmanList[i].stickman;
+			//For every stickman, check if their bullets collide with platform.
 			Game.physics.arcade.collide(curBullets, platforms, Gravitas.item.destroyBullets, null, this);
-			Game.physics.arcade.collide(curStickman, platforms);
-            Game.physics.arcade.overlap(curStickman, guns, Gravitas.item.collectGun, null, this);
-            for(var j in stickmanList) //Every stickman other than this one
+            for(var j in stickmanList)
             {
+				//For each stickman other than the current considered one, check if their bullet hit someone other than them
                 if(!stickmanList[j]) continue;
                 if(j!=i)
                 {   
                     var targetStickman = stickmanList[j].stickman;
-					//Check if curStickman hit them with its bullets
-                    Game.physics.arcade.overlap(curBullets, targetStickman, Gravitas.item.bulletHitStickman, null, this);
-				}
+                    Game.physics.arcade.overlap(curBullets, targetStickman, Gravitas.item.bulletHitPlayer, null, this);
+					               }
+                if(stickmanList[j].alive)
+                {
+                    stickmanList[j].update(); //Based on last known key states, update all alive stickmen
+                    Game.physics.arcade.collide(stickmanList[j].stickman, platforms);
+                    Game.physics.arcade.overlap(stickmanList[j].stickman, guns, Gravitas.item.collectGun, null, this);
+
+                }
             }
         }
 
@@ -371,12 +391,11 @@ Gravitas.item = {
     destroyBullets: function(bullets,platforms){
         bullets.kill();	
 	},
-	/*
     fireBullets: function(){
          // Ensure that player has a gun before he is able to shoot  
         // To avoid players being allowed to fire too fast a time limit is set
         if(hasGun == 1){
-           if (Game.time.now > bulletTime)
+            if (Game.time.now > bulletTime)
             {
                 //  Grab the first bullet we can from the pool
                 //bullet = bullets.getFirstExists(false);
@@ -396,13 +415,13 @@ Gravitas.item = {
             }
         }
         
-    }, */
+    },
         
 
-    bulletHitStickman: function(bullet, stickman){
-    stickman.health -=10;  
-    if(stickman.health<= 0){
-        stickman.kill();
+    bulletHitPlayer: function(bullet,player){
+    player.health -=10;  
+    if(player.health<= 0){
+        player.kill();
       }
     bullet.kill();
 },
