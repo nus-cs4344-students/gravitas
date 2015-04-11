@@ -46,6 +46,7 @@ var eurecaClientSetup = function(){
     {
         myId = id;
         console.log('This player id is ', id);
+		eurecaServer.joinRoom(myId);
         create();
         eurecaServer.handshake(myId);
         ready = true;
@@ -79,7 +80,12 @@ var eurecaClientSetup = function(){
             stickmanList[id].update();
         }
     };  
-    
+	eurecaClient.exports.roomStatus = function(roomlength)
+	{
+		console.log("Room has ", roomlength, " players.");
+	};
+
+
 }
 
 StickMan = function(index, game, player, serverx, servery) {

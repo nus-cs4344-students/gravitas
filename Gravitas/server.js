@@ -8,13 +8,15 @@ app.use(express.static(__dirname));
 
   
 //get EurecaServer class
-var eurecaServer = new Eureca.Server({allow:['setId', 'spawnEnemy', 'kill', 'updateState']});
+var eurecaServer = new Eureca.Server({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'roomStatus']});
 
 //create an instance of EurecaServer
 // Inform Eureca.io that the following client functions are trusted client functions
 // If we do not do this, eureca.io will not call these functions
 // client list object to hold client data
 var clients = [];
+var roomList = [[]];
+var roomNo = 0;
 //attach eureca.io to our http server
 eurecaServer.attach(server);
 
@@ -37,6 +39,19 @@ eurecaServer.onDisconnect(function (conn) {
     console.log('Client disconnected ', conn.id);
 	var removeId = clients[conn.id].id;
 
+	console.log('Client attempting to leave room');
+	console.log(roomList.length);
+	for(var i = 0; i< roomList.length; i++)
+	{
+		var elementPos = roomList[i].indexOf(removeId);
+	if(elementPos != -1)
+		{
+			roomList[i].splice(elementPos ,1);
+			console.log("element removed at ",elementPos, " from room ", i);
+		}
+	}
+	
+	
 	delete clients[conn.id];
 
 	for(var c in clients)
@@ -45,6 +60,8 @@ eurecaServer.onDisconnect(function (conn) {
 
 		remote.kill(conn.id);
 	}
+	
+	
 });
 
 eurecaServer.exports.handshake = function(id)
@@ -87,6 +104,47 @@ eurecaServer.exports.handleKeys = function(keys)
 };
 //Client should call this every frame it can - simply forwards
 //the entire knowledge of server to each client when called.
+
+eurecaServer.exports.joinRoom = function(clientID)
+{
+	var roomFound = false;
+    console.log('New client attempting to join room');
+	console.log('Client name is ', clientID);
+	for(room in roomList)
+	{
+		var roomLength = roomList[room].length;
+		if(roomLength < 4)
+		{
+			roomList[room][roomLength] = clientID;
+			roomFound = true;
+			console.log("Room joined at ", room, " with index ", roomLength);
+			break;
+		}
+	}
+	if(!roomFound)
+	{
+		if(roomList.length == undefined)
+			roomList[0] = []; 
+		roomList[roomList.length] = [clientID];
+		console.log("Room created at ", roomList.length-1);
+	}
+}
+
+eurecaServer.exports.leaveRoom = function(clientID)
+{
+	console.log('Client attempting to leave room');
+	for(room in roomList)
+	{
+		for(var i=0;i<room.length;i++)
+		{
+			if(room[i] == clientID)
+			{
+				room.splice(i, 1);
+				console.log("Client has left room.");
+			}
+		}
+	}
+}
 
 server.listen(8000);
 
