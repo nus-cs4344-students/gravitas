@@ -364,6 +364,12 @@ function create(){
         //  controls.
         cursors = game.input.keyboard.createCursorKeys();
         spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+        game.input.keyboard.addKey(Phaser.Keyboard.W);
+        game.input.keyboard.addKey(Phaser.Keyboard.A);
+        game.input.keyboard.addKey(Phaser.Keyboard.S);
+        game.input.keyboard.addKey(Phaser.Keyboard.D);
+        
+        
 };
 
 
