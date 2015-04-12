@@ -144,6 +144,7 @@ StickMan = function(index, game, player, serverx, servery) {
     this.stickman.health = 100;
     this.game.add.text(10, 20, "Health:", style);
     this.healthText = this.game.add.text(80, 20, "", style);
+    //this.refreshStats();
 
 
     // walking right or left
@@ -160,8 +161,6 @@ StickMan.prototype.update = function() {
 			this.cursor.up != this.input.up ||
 			this.cursor.fire != this.input.fire
 	);
-	if(stickman == this.stickman)
-	this.healthText.text = this.stickman.health; //Update health every time this is called.
 
 	if(inputChanged)
 	{
@@ -172,7 +171,8 @@ StickMan.prototype.update = function() {
 			this.input.y = this.stickman.y;
 			this.input.angle = this.stickman.angle;
 
-			
+			this.healthText.text = this.stickman.health;
+
             // whenever there is a change in user input, the client will call
             // the server side handleKeys function. The handleKeys function will 
             // in turn invoke the client updateState function. The updateState function
@@ -364,12 +364,6 @@ function create(){
         //  controls.
         cursors = game.input.keyboard.createCursorKeys();
         spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-        game.input.keyboard.addKey(Phaser.Keyboard.W);
-        game.input.keyboard.addKey(Phaser.Keyboard.A);
-        game.input.keyboard.addKey(Phaser.Keyboard.S);
-        game.input.keyboard.addKey(Phaser.Keyboard.D);
-        
-        
 };
 
 
@@ -395,11 +389,9 @@ function update(){
             var curStickman = stickmanList[i].stickman;
 			//For every stickman, check if their bullets collide with platform.
 			game.physics.arcade.collide(curBullets, platforms, destroyBullets, null, this);
-			game.physics.arcade.overlap(curStickman, guns, collectGun, null, this);
-			game.physics.arcade.collide(curStickman, platforms);
             for(var j in stickmanList)
             {
-			//Check if this curStickman hit anyone with its bullets	
+				//For each stickman other than the current considered one, check if their bullet hit someone other than them
                 if(!stickmanList[j]) continue;
                 if(j!=i)
                 {   
@@ -409,10 +401,17 @@ function update(){
                 if(stickmanList[j].alive)
                 {
                     stickmanList[j].update(); //Based on last known key states, update all alive stickmen
+                    game.physics.arcade.collide(stickmanList[j].stickman, platforms);
+                    game.physics.arcade.overlap(stickmanList[j].stickman, collectGun, null, this);
 
                 }
             }
         }
+
+         //  Checks to see if the player overlaps with any of the guns, if he does call the collectGun function
+    game.physics.arcade.overlap(stickman, guns, collectGun, null, this);
+	//Check to see if the bullets hit platforms; if so, destroy the bullets.
+        game.physics.arcade.collide(bullets, platforms, destroyBullets, null, this);  
         
 };   
 
@@ -430,19 +429,39 @@ function destroyBullets(bullets,platforms){
 }
 
 
-function bulletHitPlayer(targetStickman, bullet){
-	console.log("I just hit ", targetStickman);        
-    targetStickman.health = targetStickman.health - 10;
-	if(targetStickman == stickman)
-	{
-		console.log("I am hit!");
-		
-	}
-	console.log(targetStickman.health);
+function fireBullets(){
+         // Ensure that player has a gun before he is able to shoot  
+        // To avoid players being allowed to fire too fast a time limit is set
+        if(hasGun == 1){
+            if (game.time.now > bulletTime)
+            {
+                //  Grab the first bullet we can from the pool
+                //bullet = bullets.getFirstExists(false);
+                if (facing == 'right')
+                {
+                    bullet = bullets.create(player.x+20, player.y+20, 'bullet');
+                    bullet.body.velocity.x = 400;
+                    bulletTime = game.time.now + 200;
+                }
+            
+                if (facing == 'left')
+                {
+                    bullet = bullets.create(player.x-20, player.y+20, 'bullet');
+                    bullet.body.velocity.x = -400;
+                bulletTime = game.time.now + 200;
+                }
+            }
+        }
+        
+}  
 
-    if (targetStickman.health <= 0){
-        targetStickman.kill();
+function bulletHitPlayer(player, bullet){
+        
+    player.health = player.health - 10;
+
+    if (player.health <= 0){
+        player.kill();
     }
     bullet.kill();
-	
+
 }
