@@ -11,10 +11,9 @@ var cursors;
 var bullets;
 var fireRate = 100;
 var nextFire = 0;
-
 var platforms;
 var facing;
-
+var readyToMove=false;
 var guns;    
 var hasGun = 0;
 
@@ -103,6 +102,11 @@ var eurecaClientSetup = function(){
     console.log("get room info");    
      room = room1;   
     };
+
+	eurecaClient.exports.readyUp = function()
+	{
+		readyToMove = true;
+	};
     
     
 };
@@ -211,7 +215,7 @@ StickMan.prototype.update = function() {
 	if(stickman == this.stickman)
 	this.healthText.text = this.stickman.health; //Update health every time this is called.
 
-	if(inputChanged)
+	if(inputChanged && readyToMove)
 	{
 		//Send values to server
 		if(this.stickman.id == myId)
@@ -401,17 +405,16 @@ function create(){
         guns = game.add.group();
         guns.enableBody = true;
 
-
         for (var i = 1; i < 4; i++)
         {
             var gun = guns.create(i * 250, 274, 'gun');
         }
 
         gun = guns.create(1200, 474, 'gun');
-        gun = guns.create(850, 74, 'gun');
-
+    	gun = guns.create(850, 74, 'gun');
+	
         //  controls.
-        cursors = game.input.keyboard.createCursorKeys();
+    cursors = game.input.keyboard.createCursorKeys();
     spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 	eurecaServer.handshake(myId, stickman.x, stickman.y);
     player.snapShot();

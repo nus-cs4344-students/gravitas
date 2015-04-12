@@ -8,7 +8,7 @@ app.use(express.static(__dirname));
 
   
 //get EurecaServer class
-var eurecaServer = new Eureca.Server({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'roomStatus', 'getRoomInfo']});
+var eurecaServer = new Eureca.Server({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'roomStatus', 'getRoomInfo', 'readyUp']});
 
 //create an instance of EurecaServer
 // Inform Eureca.io that the following client functions are trusted client functions
@@ -43,6 +43,7 @@ eurecaServer.onDisconnect(function (conn) {
 	console.log(roomList.length);
 	for(var i = 0; i< roomList.length; i++)
 	{
+		//Look through all rooms for the client disconnecting.
 		var elementPos = roomList[i].indexOf(removeId);
 	if(elementPos != -1)
 		{
@@ -168,6 +169,18 @@ eurecaServer.exports.joinRoom = function(clientID)
 			roomList[room][roomLength] = clientID;
 			roomFound = true;
 			console.log("Room joined at ", room, " with index ", roomLength);
+
+			if(roomLength == 3)
+			{
+				console.log("Ready up!");
+				//Notify all clients in room of readiness
+				for(var i = 0; i < roomLength+1; i++)
+				{
+					aclient = roomList[room][i];
+					console.log(aclient);
+					clients[aclient].remote.readyUp();
+				}
+			}
 			break;
 		}
 	}
