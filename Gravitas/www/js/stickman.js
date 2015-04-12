@@ -50,9 +50,8 @@ var eurecaClientSetup = function(){
         myId = id;
         console.log('This player id is ', id);
 		eurecaServer.joinRoom(myId);
-        eurecaServer.provideRoomInfo(id);
+        //eurecaServer.provideRoomInfo(id);
         create();
-        console.log("sending server my id to find my room");
         ready = true;
     };
     //When a stickman dies on the server, send the kill notification
@@ -70,9 +69,13 @@ var eurecaClientSetup = function(){
         if (i == myId) return;
         console.log('SPAWN new stickman at ',x,' ',y,'hello',angle);
         console.log('ID is ', i);
+        //for all the players in the room
         for(var c=0; c< room.length; c++){
+            //find out enemy ids in the room
             var enemyid = room[c];
             console.log("enemy id", enemyid);
+            //if i provided by server is one of the enemy ids
+            // create and spawn the stickman
             if (enemyid === i){
                 var stckman = new StickMan(i, game, stickman, x, y,angle); //NOTE SPELLING not that it matters since                  this is enclosed;
                 stickmanList[i] = stckman;

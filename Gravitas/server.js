@@ -161,6 +161,7 @@ eurecaServer.exports.joinRoom = function(clientID)
 	var roomFound = false;
     console.log('New client attempting to join room');
 	console.log('Client name is ', clientID);
+    var remote = clients[clientID].remote;
 	for(room in roomList)
 	{
 		var roomLength = roomList[room].length;
@@ -168,6 +169,8 @@ eurecaServer.exports.joinRoom = function(clientID)
 		{
 			roomList[room][roomLength] = clientID;
 			roomFound = true;
+            console.log("Room id is ", roomList[room]);
+            remote.getRoomInfo(roomList[room]);
 			console.log("Room joined at ", room, " with index ", roomLength);
 
 			if(roomLength == 3)
@@ -183,6 +186,7 @@ eurecaServer.exports.joinRoom = function(clientID)
 			}
 			break;
 		}
+        
 	}
 	if(!roomFound)
 	{
@@ -190,7 +194,10 @@ eurecaServer.exports.joinRoom = function(clientID)
 			roomList[0] = []; 
 		roomList[roomList.length] = [clientID];
 		console.log("Room created at ", roomList.length-1);
+        remote.getRoomInfo(roomList.length);
 	}
+    
+
 }
 
 eurecaServer.exports.leaveRoom = function(clientID)
