@@ -12,9 +12,7 @@ var bullets;
 var fireRate = 100;
 var nextFire = 0;
 
-//var player;
 var platforms;
-//var cursors;
 var facing;
 
 var guns;    
@@ -84,8 +82,6 @@ var eurecaClientSetup = function(){
 	{
 		console.log("Room has ", roomlength, " players.");
 	};
-
-
 }
 
 StickMan = function(index, game, player, serverx, servery) {
@@ -106,7 +102,6 @@ StickMan = function(index, game, player, serverx, servery) {
 	//Other values if spawned.
 	var x = serverx;
 	var y = servery;
-
 	
 	this.game = game;
 	//this.health = 30;
@@ -127,6 +122,7 @@ StickMan = function(index, game, player, serverx, servery) {
 	this.alive = true;
 
 	this.stickman = game.add.sprite(x, y,'dude');
+		this.stickman.frame = 4;
 	this.stickman.anchor.set(0.5);
 	this.stickman.id = index;
 	game.physics.enable(this.stickman, Phaser.Physics.ARCADE);
@@ -171,14 +167,11 @@ StickMan.prototype.update = function() {
 			this.input.x = this.stickman.x;
 			this.input.y = this.stickman.y;
 			this.input.angle = this.stickman.angle;
-
 			
             // whenever there is a change in user input, the client will call
             // the server side handleKeys function. The handleKeys function will 
             // in turn invoke the client updateState function. The updateState function
             // will then update all the stickmans in a client's game.
-
-			console.log("Angle is", this.stickman.angle);
 			eurecaServer.handleKeys(this.input);
 			//Besides these three values, tx and ty are updated.
 			//angle is not currently useful, and should always be 0.
@@ -200,15 +193,20 @@ StickMan.prototype.update = function() {
 	}
 	else
 	{
+		this.stickman.frame = 4;
 		this.stickman.animations.stop();
 		this.stickman.body.velocity.x = 0;
 		if(this.facing == 'left')
 		{
-			player.frame = 0;
+		//	this.stickman.frame = 0;
 		}
-		else
+		else if(this.facing == 'right')
 		{
-			player.frame = 7;
+		//	this.stickman.frame = 7;
+		}
+		else if(this.facing == 'center')
+		{
+			this.stickman.frame = 4;
 		}
 	}
 	if(this.cursor.up && this.stickman.body.touching.down)
@@ -323,7 +321,7 @@ function create(){
 
         // player settings
         stickmanList = {};
-        player = new StickMan(myId, game, stickman);
+    player = new StickMan(myId, game, stickman, 'center');
         stickmanList[myId] = player;
         stickman = player.stickman;
         stickman.x = 0;
@@ -364,12 +362,6 @@ function create(){
         //  controls.
         cursors = game.input.keyboard.createCursorKeys();
         spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-        game.input.keyboard.addKey(Phaser.Keyboard.W);
-        game.input.keyboard.addKey(Phaser.Keyboard.A);
-        game.input.keyboard.addKey(Phaser.Keyboard.S);
-        game.input.keyboard.addKey(Phaser.Keyboard.D);
-        
-        
 };
 
 

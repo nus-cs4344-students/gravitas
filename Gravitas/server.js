@@ -69,8 +69,7 @@ eurecaServer.exports.handshake = function(id)
 	for(var c in clients)
 	{
 		var remote = clients[c].remote;
-		remote.spawnEnemy(id, x, y);
-
+		remote.spawnEnemy(id, 0, 0, 'center'); //Spawn new guy for all the old clients
 		if(c == id)
 		{
 			var newguy = clients[id].remote;
@@ -78,8 +77,9 @@ eurecaServer.exports.handshake = function(id)
 		{
 			var x = clients[cc].laststate ? clients[cc].laststate.x: 0;
 			var y = clients[cc].laststate ? clients[cc].laststate.y: 0;
-			
-			newguy.spawnEnemy(clients[cc].id, x, y);
+			var face = clients[cc].laststate ? clients[cc].laststate.sface : 'center';
+			console.log("Face is ", face);
+			newguy.spawnEnemy(clients[cc].id, x, y, face);
 		}
 		}
 	}
@@ -101,6 +101,7 @@ eurecaServer.exports.handleKeys = function(keys)
 
 	}
 	updatedClient.laststate = keys;
+	console.log(updatedClient.laststate);
 };
 //Client should call this every frame it can - simply forwards
 //the entire knowledge of server to each client when called.
@@ -145,6 +146,7 @@ eurecaServer.exports.leaveRoom = function(clientID)
 		}
 	}
 }
+
 
 server.listen(8000);
 
