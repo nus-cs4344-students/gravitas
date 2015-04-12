@@ -82,13 +82,8 @@ var eurecaClientSetup = function(){
 	{
 		console.log("Room has ", roomlength, " players.");
 	};
-<<<<<<< HEAD
-
-
 };
-=======
-}
->>>>>>> origin/Rudimentary-multiplayer
+
 
 StickMan = function(index, game, player, serverx, servery) {
     this.cursor = {
