@@ -81,7 +81,8 @@ var eurecaClientSetup = function(){
 	{
 		console.log("Room has ", roomlength, " players.");
 	};
-}
+};
+
 
 StickMan = function(index, game, player, serverx, servery) {
     this.cursor = {
@@ -319,19 +320,19 @@ function create(){
         ground.body.immovable = true;
 
         // bottom ledge
-        var ledge = platforms.create(800,500, 'ground');
-        ledge.scale.setTo(2,1);
-        ledge.body.immovable = true;
+        var ledge1 = platforms.create(800,500, 'ground');
+        ledge1.scale.setTo(2,1);
+        ledge1.body.immovable = true;
 
         // middle ledge
-        var ledge = platforms.create(0,300, 'ground');
-        ledge.scale.setTo(2.5,1);
-        ledge.body.immovable = true;
+        var ledge2 = platforms.create(0,300, 'ground');
+        ledge2.scale.setTo(2.5,1);
+        ledge2.body.immovable = true;
 
         // top ledge
-        var ledge = platforms.create(800, 100, 'ground');
-        ledge.scale.setTo(2,1);
-        ledge.body.immovable = true;
+        var ledge3 = platforms.create(800, 100, 'ground');
+        ledge3.scale.setTo(2,1);
+        ledge3.body.immovable = true;
 
 
         // player settings
@@ -364,6 +365,13 @@ function create(){
 	eurecaServer.handshake(myId, stickman.x, stickman.y);
     player.snapShot();
 
+        spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+        //game.input.keyboard.addKey(Phaser.Keyboard.W);
+        //game.input.keyboard.addKey(Phaser.Keyboard.A);
+        //game.input.keyboard.addKey(Phaser.Keyboard.S);
+        //game.input.keyboard.addKey(Phaser.Keyboard.D);
+        
+        
 };
 
 
@@ -407,15 +415,16 @@ function update(){
                 }
             }
         }
-        
 };
+
+
 
 function collectGun(player,gun){
         // Removes the gun from the screen  
         gun.kill();
         hasGun = 1;
     
-};  
+}  
 
 function destroyBullets(bullets,platforms){
         bullets.kill(); 

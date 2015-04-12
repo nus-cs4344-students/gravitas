@@ -12,9 +12,7 @@ var bullets;
 var fireRate = 100;
 var nextFire = 0;
 
-//var player;
 var platforms;
-//var cursors;
 var facing;
 
 var guns;    
@@ -48,7 +46,6 @@ var eurecaClientSetup = function(){
         console.log('This player id is ', id);
 		eurecaServer.joinRoom(myId);
         create();
-        eurecaServer.handshake(myId);
         ready = true;
     };
     //When a stickman dies on the server, send the kill notification
@@ -66,7 +63,7 @@ var eurecaClientSetup = function(){
         if (i == myId) return;
         console.log('SPAWN new stickman at ',x,' ',y);
         console.log('ID is ', i);
-        var stckman = new StickMan(i, game, stickman, x, y); //NOTE SPELLING not that it matters since this is enclosed
+        var stckman = new StickMan(i, game, stickman, x, y); //NOTE SPELLING not that it matters since this is enclosed;
         stickmanList[i] = stckman;
     };
     //Server calls this to make clients update their state; this function is called x times for each stickman in the list
@@ -84,9 +81,8 @@ var eurecaClientSetup = function(){
 	{
 		console.log("Room has ", roomlength, " players.");
 	};
+};
 
-
-}
 
 StickMan = function(index, game, player, serverx, servery) {
     this.cursor = {
@@ -106,7 +102,6 @@ StickMan = function(index, game, player, serverx, servery) {
 	//Other values if spawned.
 	var x = serverx;
 	var y = servery;
-
 	
 	this.game = game;
 	//this.health = 30;
@@ -127,6 +122,8 @@ StickMan = function(index, game, player, serverx, servery) {
 	this.alive = true;
 
 	this.stickman = game.add.sprite(x, y,'dude');
+	console.log("Spawning new stickman at ",x," ",y);
+	this.stickman.frame = 4;
 	this.stickman.anchor.set(0.5);
 	this.stickman.id = index;
 	game.physics.enable(this.stickman, Phaser.Physics.ARCADE);
@@ -153,6 +150,21 @@ StickMan = function(index, game, player, serverx, servery) {
 	game.physics.arcade.velocityFromRotation(this.stickman.rotation, 0, this.stickman.body.velocity);
 };
 
+StickMan.prototype.snapShot = function() {
+	this.input.left = false;
+	this.input.right = false;
+	this.input.up = false;
+	this.input.fire = false;
+	this.input.tx = 0;
+	this.input.ty = 0;
+    this.input.x = this.stickman.x;
+	this.input.y = this.stickman.y;
+	this.input.angle = 0;
+	console.log("snapShot: ");
+	console.log(this.input);
+	eurecaServer.handleKeys(this.input);
+};
+
 StickMan.prototype.update = function() {
 	var inputChanged = (
 			this.cursor.left != this.input.left ||
@@ -171,14 +183,11 @@ StickMan.prototype.update = function() {
 			this.input.x = this.stickman.x;
 			this.input.y = this.stickman.y;
 			this.input.angle = this.stickman.angle;
-
 			
             // whenever there is a change in user input, the client will call
             // the server side handleKeys function. The handleKeys function will 
             // in turn invoke the client updateState function. The updateState function
             // will then update all the stickmans in a client's game.
-
-			console.log("Angle is", this.stickman.angle);
 			eurecaServer.handleKeys(this.input);
 			//Besides these three values, tx and ty are updated.
 			//angle is not currently useful, and should always be 0.
@@ -200,15 +209,20 @@ StickMan.prototype.update = function() {
 	}
 	else
 	{
+		this.stickman.frame = 4;
 		this.stickman.animations.stop();
 		this.stickman.body.velocity.x = 0;
 		if(this.facing == 'left')
 		{
-			player.frame = 0;
+		//	this.stickman.frame = 0;
 		}
-		else
+		else if(this.facing == 'right')
 		{
-			player.frame = 7;
+		//	this.stickman.frame = 7;
+		}
+		else if(this.facing == 'center')
+		{
+			this.stickman.frame = 4;
 		}
 	}
 	if(this.cursor.up && this.stickman.body.touching.down)
@@ -306,36 +320,34 @@ function create(){
         ground.body.immovable = true;
 
         // bottom ledge
-        var ledge = platforms.create(800,500, 'ground');
-        ledge.scale.setTo(2,1);
-        ledge.body.immovable = true;
+        var ledge1 = platforms.create(800,500, 'ground');
+        ledge1.scale.setTo(2,1);
+        ledge1.body.immovable = true;
 
         // middle ledge
-        var ledge = platforms.create(0,300, 'ground');
-        ledge.scale.setTo(2.5,1);
-        ledge.body.immovable = true;
+        var ledge2 = platforms.create(0,300, 'ground');
+        ledge2.scale.setTo(2.5,1);
+        ledge2.body.immovable = true;
 
         // top ledge
-        var ledge = platforms.create(800, 100, 'ground');
-        ledge.scale.setTo(2,1);
-        ledge.body.immovable = true;
+        var ledge3 = platforms.create(800, 100, 'ground');
+        ledge3.scale.setTo(2,1);
+        ledge3.body.immovable = true;
 
 
         // player settings
-        stickmanList = {};
-        player = new StickMan(myId, game, stickman);
+    stickmanList = {};
+	var randomx = game.world.randomX;
+	var randomy = game.world.randomY-300;
+    player = new StickMan(myId, game, stickman, randomx, randomy);
+	console.log("Randomx: ", randomx);
+	console.log("Randomy: ", randomy);
         stickmanList[myId] = player;
         stickman = player.stickman;
-        stickman.x = 0;
-        stickman.y = 0;
+        //stickman.x = randomx;
+        //stickman.y = randomy;
         bullets = player.bullets;
-        //player = game.add.sprite(32, game.world.height - 150, 'dude');
-        // enable physics on player
-        //game.physics.arcade.enable(player);
-        //guns
         guns = game.add.group();
-
-
         guns.enableBody = true;
 
 
@@ -347,29 +359,23 @@ function create(){
         gun = guns.create(1200, 474, 'gun');
         gun = guns.create(850, 74, 'gun');
 
-        /*
-        //bullets
-        bullets = game.add.group();
-        //game.physics.enable(bullets,Phaser.Physics.ARCADE);
-        bullets.enableBody = true;
-        bullets.physicsBodyType = Phaser.Physics.ARCADE;
-        //bullets.createMultiple(30, 'bullet', 0, false);
-        bullets.setAll('anchor.x', 0.5);
-        bullets.setAll('anchor.y', 0.5);
-        bullets.setAll('outOfBoundsKill', true);
-        bullets.setAll('checkWorldBounds', true);
-
-        */
-
         //  controls.
         cursors = game.input.keyboard.createCursorKeys();
+<<<<<<< HEAD
+    spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+	eurecaServer.handshake(myId, stickman.x, stickman.y);
+    player.snapShot();
+
+=======
         spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-        game.input.keyboard.addKey(Phaser.Keyboard.W);
-        game.input.keyboard.addKey(Phaser.Keyboard.A);
-        game.input.keyboard.addKey(Phaser.Keyboard.S);
-        game.input.keyboard.addKey(Phaser.Keyboard.D);
+        //game.input.keyboard.addKey(Phaser.Keyboard.W);
+        //game.input.keyboard.addKey(Phaser.Keyboard.A);
+        //game.input.keyboard.addKey(Phaser.Keyboard.S);
+        //game.input.keyboard.addKey(Phaser.Keyboard.D);
         
         
+}
+>>>>>>> origin/Rudimentary-multiplayer
 };
 
 
@@ -385,7 +391,7 @@ function update(){
         player.input.ty = game.input.y+ game.camera.y;
 
 
-        game.physics.arcade.collide(stickman, platforms);
+    game.physics.arcade.collide(stickman, platforms);
         game.physics.arcade.collide(guns, platforms);
 
         for(var i in stickmanList)
@@ -405,7 +411,11 @@ function update(){
                 {   
                     var targetStickman = stickmanList[j].stickman;
                     game.physics.arcade.overlap(curBullets, targetStickman, bulletHitPlayer, null, this);
-					               }
+<<<<<<< HEAD
+				}
+=======
+                }
+>>>>>>> origin/Rudimentary-multiplayer
                 if(stickmanList[j].alive)
                 {
                     stickmanList[j].update(); //Based on last known key states, update all alive stickmen
@@ -414,16 +424,20 @@ function update(){
             }
         }
         
-};   
+<<<<<<< HEAD
+};
+=======
+}   
 
 
+>>>>>>> origin/Rudimentary-multiplayer
 
 function collectGun(player,gun){
         // Removes the gun from the screen  
         gun.kill();
         hasGun = 1;
     
-};  
+}  
 
 function destroyBullets(bullets,platforms){
         bullets.kill(); 
