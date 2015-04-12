@@ -12,7 +12,9 @@ var bullets;
 var fireRate = 100;
 var nextFire = 0;
 
+//var player;
 var platforms;
+//var cursors;
 var facing;
 
 var guns;    
@@ -82,13 +84,9 @@ var eurecaClientSetup = function(){
 	{
 		console.log("Room has ", roomlength, " players.");
 	};
-<<<<<<< HEAD
 
 
-};
-=======
 }
->>>>>>> origin/Rudimentary-multiplayer
 
 StickMan = function(index, game, player, serverx, servery) {
     this.cursor = {
@@ -108,6 +106,7 @@ StickMan = function(index, game, player, serverx, servery) {
 	//Other values if spawned.
 	var x = serverx;
 	var y = servery;
+
 	
 	this.game = game;
 	//this.health = 30;
@@ -128,7 +127,6 @@ StickMan = function(index, game, player, serverx, servery) {
 	this.alive = true;
 
 	this.stickman = game.add.sprite(x, y,'dude');
-		this.stickman.frame = 4;
 	this.stickman.anchor.set(0.5);
 	this.stickman.id = index;
 	game.physics.enable(this.stickman, Phaser.Physics.ARCADE);
@@ -173,11 +171,14 @@ StickMan.prototype.update = function() {
 			this.input.x = this.stickman.x;
 			this.input.y = this.stickman.y;
 			this.input.angle = this.stickman.angle;
+
 			
             // whenever there is a change in user input, the client will call
             // the server side handleKeys function. The handleKeys function will 
             // in turn invoke the client updateState function. The updateState function
             // will then update all the stickmans in a client's game.
+
+			console.log("Angle is", this.stickman.angle);
 			eurecaServer.handleKeys(this.input);
 			//Besides these three values, tx and ty are updated.
 			//angle is not currently useful, and should always be 0.
@@ -199,20 +200,15 @@ StickMan.prototype.update = function() {
 	}
 	else
 	{
-		this.stickman.frame = 4;
 		this.stickman.animations.stop();
 		this.stickman.body.velocity.x = 0;
 		if(this.facing == 'left')
 		{
-		//	this.stickman.frame = 0;
+			player.frame = 0;
 		}
-		else if(this.facing == 'right')
+		else
 		{
-		//	this.stickman.frame = 7;
-		}
-		else if(this.facing == 'center')
-		{
-			this.stickman.frame = 4;
+			player.frame = 7;
 		}
 	}
 	if(this.cursor.up && this.stickman.body.touching.down)
@@ -310,24 +306,24 @@ function create(){
         ground.body.immovable = true;
 
         // bottom ledge
-        var ledge1 = platforms.create(800,500, 'ground');
-        ledge1.scale.setTo(2,1);
-        ledge1.body.immovable = true;
+        var ledge = platforms.create(800,500, 'ground');
+        ledge.scale.setTo(2,1);
+        ledge.body.immovable = true;
 
         // middle ledge
-        var ledge2 = platforms.create(0,300, 'ground');
-        ledge2.scale.setTo(2.5,1);
-        ledge2.body.immovable = true;
+        var ledge = platforms.create(0,300, 'ground');
+        ledge.scale.setTo(2.5,1);
+        ledge.body.immovable = true;
 
         // top ledge
-        var ledge3 = platforms.create(800, 100, 'ground');
-        ledge3.scale.setTo(2,1);
-        ledge3.body.immovable = true;
+        var ledge = platforms.create(800, 100, 'ground');
+        ledge.scale.setTo(2,1);
+        ledge.body.immovable = true;
 
 
         // player settings
         stickmanList = {};
-    player = new StickMan(myId, game, stickman, 'center');
+        player = new StickMan(myId, game, stickman);
         stickmanList[myId] = player;
         stickman = player.stickman;
         stickman.x = 0;
@@ -368,13 +364,12 @@ function create(){
         //  controls.
         cursors = game.input.keyboard.createCursorKeys();
         spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-        //game.input.keyboard.addKey(Phaser.Keyboard.W);
-        //game.input.keyboard.addKey(Phaser.Keyboard.A);
-        //game.input.keyboard.addKey(Phaser.Keyboard.S);
-        //game.input.keyboard.addKey(Phaser.Keyboard.D);
+        game.input.keyboard.addKey(Phaser.Keyboard.W);
+        game.input.keyboard.addKey(Phaser.Keyboard.A);
+        game.input.keyboard.addKey(Phaser.Keyboard.S);
+        game.input.keyboard.addKey(Phaser.Keyboard.D);
         
         
-}
 };
 
 
@@ -410,7 +405,7 @@ function update(){
                 {   
                     var targetStickman = stickmanList[j].stickman;
                     game.physics.arcade.overlap(curBullets, targetStickman, bulletHitPlayer, null, this);
-                }
+					               }
                 if(stickmanList[j].alive)
                 {
                     stickmanList[j].update(); //Based on last known key states, update all alive stickmen
@@ -419,7 +414,7 @@ function update(){
             }
         }
         
-}   
+};   
 
 
 
@@ -428,7 +423,7 @@ function collectGun(player,gun){
         gun.kill();
         hasGun = 1;
     
-}  
+};  
 
 function destroyBullets(bullets,platforms){
         bullets.kill(); 
