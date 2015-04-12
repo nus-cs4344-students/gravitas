@@ -144,19 +144,30 @@ StickMan = function(index, game, player, serverx, servery, sangle) {
 	//this.health = 30;
 	this.player = player;
 	this.bullets = game.add.group();
+	this.bullets2 = game.add.group();
 	this.bullets.enableBody = true;
+	this.bullets2.enableBody = true;
 	this.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-	this.bullets.createMultiple(20, 'bullet', 0, false); //quantity, key, frame, default exists state (false, since it doesn't exist until created).
+	this.bullets2.physicsBodyType = Phaser.Physics.ARCADE;
+	this.bullets.createMultiple(5, 'bullet', 0, false); //quantity, key, frame, default exists state (false, since it doesn't exist until created).
 	this.bullets.setAll('anchor.x', 0.5); 
 	this.bullets.setAll('anchor.y', 0.5);
 	//Kill bullets when they leave the boundaries of the world
 	this.bullets.setAll('outOfBoundsKill', true);
 	this.bullets.setAll('checkWorldBounds', true);
+	this.bullets2.createMultiple(20, 'bullet', 0, false); //quantity, key, frame, default exists state (false, since it doesn't exist until created).
+	this.bullets2.setAll('anchor.x', 0.5); 
+	this.bullets2.setAll('anchor.y', 0.5);
+	//Kill bullets when they leave the boundaries of the world
+	this.bullets2.setAll('outOfBoundsKill', true);
+	this.bullets2.setAll('checkWorldBounds', true);
+
 
 	this.currentSpeed = 0;
 	this.fireRate = 500; //Milliseconds before another firing
 	this.nextFire = 0;
 	this.alive = true;
+	this.guntype = "";
 
 	spriteToBeRotated = this.stickman = game.add.sprite(x, y,'dude');
 	console.log("Spawning new stickman at ",x," ",y);
@@ -293,14 +304,37 @@ StickMan.prototype.update = function() {
 StickMan.prototype.fire = function(target)
 {
 	//Fire only when the interval calls for it
+	var bulletspeed=0;
+	var bullettype;
 	if(!stickman.alive) return;
+	if(!stickman.guntype) return;
+	console.log(stickman.guntype);
+	if(stickman.guntype == 'gun')
+	{
+		this.fireRate = 800;
+		bulletspeed = 500;
+		bullettype = 1;
+	}
+	else if(stickman.guntype == 'gun2')
+	{
+		this.fireRate = 1000;
+		bulletspeed = 800;
+		bullettype = 2;
+	}
+	else if(stickman.guntype == 'gun3')
+	{
+		this.fireRate = 100;
+		bulletspeed = 300;
+		bullettype = 1;
+	}
 	if(this.game.time.now > this.nextFire && this.bullets.countDead() > 0)
 	{
 		this.nextFire = this.game.time.now + this.fireRate;
 		var bullet = this.bullets.getFirstDead();
 		bullet.reset(this.stickman.x, this.stickman.y);
-		bullet.rotation = this.game.physics.arcade.moveToObject(bullet, target, 500);
+		bullet.rotation = this.game.physics.arcade.moveToObject(bullet, target, bulletspeed);
 	}
+	
 };
 
 StickMan.prototype.kill = function()
@@ -344,6 +378,10 @@ function preload(){
     game.load.image('sky', 'www/assets/sky2.png');
     game.load.image('ground', 'www/assets/platform.png');
     game.load.image('gun', 'www/assets/smallgun1.png');
+	game.load.image('gun2', 'www/assets/smallgun2.png');
+	game.load.image('gun3', 'www/assets/smallgun3.png');
+	game.load.image('gun4', 'www/assets/smallgun4.png');
+	game.load.image('gun5', 'www/assets/smallgun5.png');
     game.load.image('bullet', 'www/assets/pbullet.gif');
     game.load.spritesheet('healthBar','www/assets/healthbar.png' , 32,35.2); 
     game.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48);   
@@ -405,16 +443,20 @@ function create(){
         //stickman.x = randomx;
         //stickman.y = randomy;
         bullets = player.bullets;
-        guns = game.add.group();
-        guns.enableBody = true;
+    guns = game.add.group();
+	guns2 = game.add.group();
+	guns3 = game.add.group();
+    guns.enableBody = true;
+	guns2.enableBody = true;
+	guns3.enableBody = true;
 
-        for (var i = 1; i < 4; i++)
+        for (var i = 1; i < 3; i++)
         {
             var gun = guns.create(i * 250, 274, 'gun');
         }
 
-        gun = guns.create(1200, 474, 'gun');
-    	gun = guns.create(850, 74, 'gun');
+        gun = guns2.create(1200, 474, 'gun2');
+    	gun = guns3.create(850, 74, 'gun3');
 	
         //  controls.
     cursors = game.input.keyboard.createCursorKeys();
@@ -456,7 +498,9 @@ function update(){
     
         **/
         game.physics.arcade.collide(stickman, platforms);
-        game.physics.arcade.collide(guns, platforms);
+    game.physics.arcade.collide(guns, platforms);
+	game.physics.arcade.collide(guns2, platforms);
+	game.physics.arcade.collide(guns3, platforms);
 
         for(var i in stickmanList)
         {
@@ -466,6 +510,8 @@ function update(){
 			//For every stickman, check if their bullets collide with platform.
 			game.physics.arcade.collide(curBullets, platforms, destroyBullets, null, this);
 			game.physics.arcade.overlap(curStickman, guns, collectGun, null, this);
+			game.physics.arcade.overlap(curStickman, guns2, collectGun, null, this);
+			game.physics.arcade.overlap(curStickman, guns3, collectGun, null, this);
 			game.physics.arcade.collide(curStickman, platforms);
             for(var j in stickmanList)
             {
@@ -489,8 +535,15 @@ function update(){
 
 function collectGun(player,gun){
         // Removes the gun from the screen  
-        gun.kill();
-        hasGun = 1;
+    gun.kill();
+	console.log(gun);
+	console.log(gun.key);
+	if(gun.key == 'gun')
+		player.guntype = 'gun';
+	else if(gun.key == 'gun2')
+		player.guntype = 'gun2';
+	else if(gun.key == 'gun3')
+		player.guntype = 'gun3';
     
 }  
 
@@ -500,8 +553,15 @@ function destroyBullets(bullets,platforms){
 
 
 function bulletHitPlayer(targetStickman, bullet){
-	console.log("I just hit ", targetStickman);        
-    targetStickman.health = targetStickman.health - 10;
+	console.log(bullet.key);
+	if(bullet.key == 'bullet')
+	{
+		targetStickman.health = targetStickman.health - 10;
+	}
+	else
+	{
+		target.Stickman.health = targetStickman.health - 3;
+	}
 	if(targetStickman == stickman)
 	{
 		console.log("I am hit!");
