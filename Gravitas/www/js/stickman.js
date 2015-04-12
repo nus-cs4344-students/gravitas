@@ -24,6 +24,7 @@ var bulletTime = 0;
 var ready = false;
 
 var eurecaServer;
+var room;
 
 var GAME_WIDTH = 1600;
 var GAME_HEIGHT = 800;
@@ -45,7 +46,9 @@ var eurecaClientSetup = function(){
         myId = id;
         console.log('This player id is ', id);
 		eurecaServer.joinRoom(myId);
+        eurecaServer.provideRoomInfo(id);
         create();
+        console.log("sending server my id to find my room");
         ready = true;
     };
     //When a stickman dies on the server, send the kill notification
@@ -63,8 +66,14 @@ var eurecaClientSetup = function(){
         if (i == myId) return;
         console.log('SPAWN new stickman at ',x,' ',y);
         console.log('ID is ', i);
-        var stckman = new StickMan(i, game, stickman, x, y); //NOTE SPELLING not that it matters since this is enclosed;
-        stickmanList[i] = stckman;
+        for(var c=0; c< room.length; c++){
+            var enemyid = room[c];
+            console.log("enemy id", enemyid);
+            if (enemyid === i){
+                var stckman = new StickMan(i, game, stickman, x, y); //NOTE SPELLING not that it matters since                  this is enclosed;
+                stickmanList[i] = stckman;
+            }
+        }
     };
     //Server calls this to make clients update their state; this function is called x times for each stickman in the list
     eurecaClient.exports.updateState = function(id, state)
@@ -81,6 +90,15 @@ var eurecaClientSetup = function(){
 	{
 		console.log("Room has ", roomlength, " players.");
 	};
+    
+    eurecaClient.exports.getRoomInfo = function(room1)
+    {
+    console.log(room1);
+    console.log("get room info");    
+     room = room1;   
+    };
+    
+    
 };
 
 

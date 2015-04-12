@@ -8,7 +8,7 @@ app.use(express.static(__dirname));
 
   
 //get EurecaServer class
-var eurecaServer = new Eureca.Server({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'roomStatus']});
+var eurecaServer = new Eureca.Server({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'roomStatus', 'getRoomInfo']});
 
 //create an instance of EurecaServer
 // Inform Eureca.io that the following client functions are trusted client functions
@@ -64,31 +64,62 @@ eurecaServer.onDisconnect(function (conn) {
 	
 });
 
+
+
+eurecaServer.exports.provideRoomInfo = function (id)
+{
+    // for all the rooms in the Gravitas
+    console.log("entered provideroom info");
+    for (var r in roomList){
+        console.log("searching id in rooms");
+        //accessing a particular room
+     var room = roomList[r];
+        //for(var c in room[c]){
+        for(var i = 0; i< room.length; i++){
+            if (room[i] === id)
+            {   
+                console.log("found id in room");
+                var remote = clients[id].remote;
+                remote.getRoomInfo(room);
+            }
+        }
+    }
+};
+
+
 eurecaServer.exports.handshake = function(id, clientx, clienty)
 {
-	for(var c in clients)
+    //problematic way of updating room info
+    //updating room info even though i loop through
+    // players that are not in my room
+	for(var r in roomList)
 	{
-		if(c!==id)
-		{
-		var remote = clients[c].remote;
-		remote.spawnEnemy(id, clientx, clienty, 'center'); //Spawn new guy for all the old clients
-			console.log("Spawned newguy at ",clientx," ",clienty);
-		}
-		if(c == id)
-		{
-			var newguy = clients[id].remote;
-		for(var cc in clients)
-			{
-				console.log(clients[cc]);
-				if(cc!==id)
-				{
-			var x = clients[cc].laststate ? clients[cc].laststate.x: 0;
-			var y = clients[cc].laststate ? clients[cc].laststate.y: 0;
-			newguy.spawnEnemy(clients[cc].id, x, y);
-			console.log("Spawned enemy for newguy at ",x," ",y);
-				}
-		}
-		}
+        var room = roomList[r];
+        for (var i=0; i< room.length; i++){
+            if(room[i] !==id)
+            {
+            var remote = clients[room[i]].remote;
+            var remote2 = clients[room[i]].remote;
+            remote.getRoomInfo(room);
+            remote2.spawnEnemy(id, clientx, clienty, 'center'); //Spawn new guy for all the old clients
+                console.log("Spawned newguy at ",clientx," ",clienty);
+            }
+            if(room[i] === id)
+            {
+                var newguy = clients[room[i]].remote;
+            for(var cc in clients)
+                {
+                    console.log(clients[cc]);
+                    if(cc!==id)
+                    {
+                var x = clients[cc].laststate ? clients[cc].laststate.x: 0;
+                var y = clients[cc].laststate ? clients[cc].laststate.y: 0;
+                newguy.spawnEnemy(clients[cc].id, x, y);
+                console.log("Spawned enemy for newguy at ",x," ",y);
+                    }
+            }
+            }
+        }
 	}
 };
  // whenever there is a change in user input, the client will call
