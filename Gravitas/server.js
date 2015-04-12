@@ -84,8 +84,11 @@ eurecaServer.exports.handshake = function(id, clientx, clienty)
 				{
 			var x = clients[cc].laststate ? clients[cc].laststate.x: 0;
 			var y = clients[cc].laststate ? clients[cc].laststate.y: 0;
-			newguy.spawnEnemy(clients[cc].id, x, y);
+            var angle = clients[cc].laststate ? clients[cc].laststate.angle: 0;
+                    console.log("This is angle ", angle);
+			newguy.spawnEnemy(clients[cc].id, x, y,angle);
 			console.log("Spawned enemy for newguy at ",x," ",y);
+            console.log("spawned enemy for newguy angle", angle);
 				}
 		}
 		}
