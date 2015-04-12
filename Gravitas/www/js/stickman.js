@@ -27,6 +27,11 @@ var eurecaServer;
 
 var GAME_WIDTH = 1600;
 var GAME_HEIGHT = 800;
+
+var spriteToBeRotated;
+//var angle = 0;
+
+
 //this function will handle client communication with the server
 var eurecaClientSetup = function(){
  
@@ -58,12 +63,12 @@ var eurecaClientSetup = function(){
         }
     };
     //Spawn another client, provided its not this client itself, indicating error.
-    eurecaClient.exports.spawnEnemy = function(i, x, y)
+    eurecaClient.exports.spawnEnemy = function(i, x, y, angle)
     {
         if (i == myId) return;
-        console.log('SPAWN new stickman at ',x,' ',y);
+        console.log('SPAWN new stickman at ',x,' ',y,'hello',angle);
         console.log('ID is ', i);
-        var stckman = new StickMan(i, game, stickman, x, y); //NOTE SPELLING not that it matters since this is enclosed;
+        var stckman = new StickMan(i, game, stickman, x, y, angle); //NOTE SPELLING not that it matters since this is enclosed;
         stickmanList[i] = stckman;
     };
     //Server calls this to make clients update their state; this function is called x times for each stickman in the list
@@ -84,20 +89,26 @@ var eurecaClientSetup = function(){
 };
 
 
-StickMan = function(index, game, player, serverx, servery) {
+StickMan = function(index, game, player, serverx, servery, sangle) {
     this.cursor = {
 		left:false,
 		right: false,
 		up: false,
-		fire: false
+		fire: false,
+        rotateClockwise: false,
+        rotateAntiClockwise: false
 	};
 
 	this.input = {
 		left:false,
 		right:false,
 		up:false,
-		fire:false
+		fire:false,
+        rotateClockwise: false,
+        rotateAntiClockwise: false
 	};
+    
+    
 	//Zero if originally not present on server, as specified in server.js;
 	//Other values if spawned.
 	var x = serverx;
@@ -121,7 +132,7 @@ StickMan = function(index, game, player, serverx, servery) {
 	this.nextFire = 0;
 	this.alive = true;
 
-	this.stickman = game.add.sprite(x, y,'dude');
+	spriteToBeRotated = this.stickman = game.add.sprite(x, y,'dude');
 	console.log("Spawning new stickman at ",x," ",y);
 	this.stickman.frame = 4;
 	this.stickman.anchor.set(0.5);
@@ -130,7 +141,7 @@ StickMan = function(index, game, player, serverx, servery) {
 	this.stickman.body.immovable = false;
 	this.stickman.body.collideWorldBounds = true;
 
-	this.stickman.angle = 0;    
+	this.stickman.angle = sangle;    
     // player properties
     this.stickman.body.bounce.y = 0.2;
     this.stickman.body.gravity.y = 200;
@@ -155,10 +166,14 @@ StickMan.prototype.snapShot = function() {
 	this.input.right = false;
 	this.input.up = false;
 	this.input.fire = false;
+    this.rotateClockwise = false;
+    this.rotateAntiClockwise = false;
+    
 	this.input.tx = 0;
 	this.input.ty = 0;
     this.input.x = this.stickman.x;
 	this.input.y = this.stickman.y;
+    
 	this.input.angle = 0;
 	console.log("snapShot: ");
 	console.log(this.input);
@@ -169,7 +184,9 @@ StickMan.prototype.update = function() {
 	var inputChanged = (
 			this.cursor.left != this.input.left ||
 			this.cursor.right != this.input.right ||
-			this.cursor.up != this.input.up ||
+			this.cursor.up != this.input.up || this.cursor.up != this.input.up ||
+            this.cursor.rotateClockwise != this.input.rotateClockwise ||
+            this.cursor.rotateAntiClockwise != this.input.rotateAntiClockwise ||
 			this.cursor.fire != this.input.fire
 	);
 	if(stickman == this.stickman)
@@ -182,8 +199,8 @@ StickMan.prototype.update = function() {
 		{
 			this.input.x = this.stickman.x;
 			this.input.y = this.stickman.y;
-			this.input.angle = this.stickman.angle;
-			
+            this.input.angle = this.stickman.angle;
+				
             // whenever there is a change in user input, the client will call
             // the server side handleKeys function. The handleKeys function will 
             // in turn invoke the client updateState function. The updateState function
@@ -194,8 +211,19 @@ StickMan.prototype.update = function() {
 		}
 		//Right now does not immediately update gun rotation, not that we have a sprite for it
 	}
-
-	if(this.cursor.left)
+    
+     console.log("above");
+    if(this.cursor.rotateClockwise){
+        console.log("rotateclockwise");
+        this.stickman.angle +=1;
+        console.log("after",this.stickman.angle);
+    }
+    else if(this.cursor.rotateAntiClockwise){
+        console.log("rotateAnticlockwise");
+        this.stickman.angle -=1;
+        console.log("after",this.stickman.angle);
+    }
+	else if(this.cursor.left)
 	{
 		this.stickman.body.velocity.x = -150;
 		this.stickman.animations.play('left');
@@ -297,6 +325,10 @@ function preload(){
 }
 
 function create(){
+    
+        rotateClockwise = game.input.keyboard.addKey(Phaser.Keyboard.A);
+        rotateAntiClockwise = game.input.keyboard.addKey(Phaser.Keyboard.D);
+
         //  enable arcade physics system
         game.physics.startSystem(Phaser.Physics.ARCADE); 
         game.stage.disableVisibilityChange = true;
@@ -367,9 +399,9 @@ function create(){
 
         spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         //game.input.keyboard.addKey(Phaser.Keyboard.W);
-        //game.input.keyboard.addKey(Phaser.Keyboard.A);
+       // rotateClockwise = game.input.keyboard.addKey(Phaser.Keyboard.A);
         //game.input.keyboard.addKey(Phaser.Keyboard.S);
-        //game.input.keyboard.addKey(Phaser.Keyboard.D);
+        //rotateAntiClockwise = game.input.keyboard.addKey(Phaser.Keyboard.D);
         
         
 };
@@ -383,11 +415,22 @@ function update(){
         player.input.right = cursors.right.isDown;
         player.input.up = cursors.up.isDown;
         player.input.fire = game.input.activePointer.isDown;
+        player.input.rotateAntiClockwise = rotateAntiClockwise.isDown;
+        player.input.rotateClockwise = rotateClockwise.isDown;
+    
         player.input.tx = game.input.x+ game.camera.x;
         player.input.ty = game.input.y+ game.camera.y;
 
-
-    game.physics.arcade.collide(stickman, platforms);
+        /**
+        if(rotateClockwise.isDown){
+            spriteToBeRotated.angle +=1; 
+        }  
+        if(rotateAntiClockwise.isDown){
+            spriteToBeRotated.angle -=1;
+        }
+    
+        **/
+        game.physics.arcade.collide(stickman, platforms);
         game.physics.arcade.collide(guns, platforms);
 
         for(var i in stickmanList)
