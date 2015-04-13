@@ -184,7 +184,7 @@ StickMan.prototype.update = function() {
 	var inputChanged = (
 			this.cursor.left != this.input.left ||
 			this.cursor.right != this.input.right ||
-			this.cursor.up != this.input.up || this.cursor.up != this.input.up ||
+			this.cursor.up != this.input.up ||
             this.cursor.rotateClockwise != this.input.rotateClockwise ||
             this.cursor.rotateAntiClockwise != this.input.rotateAntiClockwise ||
 			this.cursor.fire != this.input.fire
