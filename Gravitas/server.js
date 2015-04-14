@@ -110,7 +110,7 @@ eurecaServer.exports.handshake = function(id, clientx, clienty)
                 var newguy = clients[room[i]].remote;
             for(var cc in clients)
                 {
-                    console.log(clients[cc]);
+                    //console.log(clients[cc]);
                     if(cc!==id)
                     {
                 var x = clients[cc].laststate ? clients[cc].laststate.x: 0;
@@ -141,13 +141,13 @@ eurecaServer.exports.handleKeys = function(keys)
     {
         var room = roomList[r];
         for(var c in room){
-            console.log(room[c]);
+            //console.log(room[c]);
 		      var remote = clients[room[c]].remote;//Sets the client to update
 		      remote.updateState(updatedClient.id, keys); //whenever a client presses a key, its keystrokes are               sent to all clients
 
 	   }
 	   updatedClient.laststate = keys;
-        console.log(updatedClient.laststate);
+       // console.log(updatedClient.laststate);
     }
 
 
