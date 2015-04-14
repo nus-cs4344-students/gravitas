@@ -413,20 +413,71 @@ function create(){
         ground.body.immovable = true;
 
         // bottom ledge
-        var ledge1 = platforms.create(800,500, 'ground');
-        ledge1.scale.setTo(2,1);
+        var ledge1 = platforms.create(600,500, 'ground');
+        ledge1.scale.setTo(0.6,0.1);
         ledge1.body.immovable = true;
 
         // middle ledge
-        var ledge2 = platforms.create(0,300, 'ground');
-        ledge2.scale.setTo(2.5,1);
+        var ledge2 = platforms.create(400,300, 'ground'); //x, y from left, sprite
+        ledge2.scale.setTo(0.4,0.1); //Length, thickness
         ledge2.body.immovable = true;
 
         // top ledge
-        var ledge3 = platforms.create(800, 100, 'ground');
-        ledge3.scale.setTo(2,1);
-        ledge3.body.immovable = true;
+        var ledge3 = platforms.create(700, 100, 'ground');
+        ledge3.scale.setTo(0.5,0.1);
+    	ledge3.body.immovable = true;
 
+	var ledge4 = platforms.create(1000, 250, 'ground');
+	ledge4.scale.setTo(0.1, 0.1);
+	ledge4.body.immovable = true;
+
+	var ledge5 = platforms.create(1070, 300, 'ground');
+	ledge5.scale.setTo(0.1, 0.1);
+	ledge5.body.immovable = true;
+
+	var ledge6 = platforms.create(1140, 350, 'ground');
+	ledge6.scale.setTo(0.1, 0.1);
+	ledge6.body.immovable = true;
+
+	var ledge7 = platforms.create(1210, 400, 'ground');
+	ledge7.scale.setTo(0.1, 0.1);
+	ledge7.body.immovable = true;
+
+	var ledge8 = platforms.create(200, 420, 'ground');
+	ledge8.scale.setTo(0.1, 0.1);
+	ledge8.body.immovable = true;
+
+	var ledge9 = platforms.create(50, 120, 'ground');
+	ledge9.scale.setTo(0.5, 0.1);
+	ledge9.body.immovable = true;
+
+	var ledge10 = platforms.create(1200, game.world.height-150, 'ground');
+	ledge10.scale.setTo(0.02, 5);
+	ledge10.body.immovable = true;
+
+	var ledge11 = platforms.create(1400, 100, 'ground');
+	ledge11.scale.setTo(0.3, 0.1);
+	ledge11.body.immovable = true;
+
+	var ledge12 = platforms.create(1520, 100, 'ground');
+	ledge12.scale.setTo(0.01, 5);
+	ledge12.body.immovable = true;
+
+	var ledge13 = platforms.create(1400, 200, 'ground');
+	ledge13.scale.setTo(0.3, 0.1);
+	ledge13.body.immovable = true;
+
+	var ledge14 = platforms.create(500, game.world.height - 90, 'ground');
+	ledge14.scale.setTo(.5, 1);
+	ledge14.body.immovable = true;
+
+	var ledge15 = platforms.create(0, 600, 'ground');
+	ledge15.scale.setTo(0.3, 0.1);
+	ledge15.body.immovable = true;
+
+	var ledge16 = platforms.create(1480, 600, 'ground');
+	ledge16.scale.setTo(0.3, 0.1);
+	ledge16.body.immovable = true;
 
         // player settings
     stickmanList = {};
@@ -452,9 +503,10 @@ function create(){
             var gun = guns.create(i * 250, 274, 'gun');
         }
 
-        gun = guns2.create(1200, 474, 'gun2');
+        gun = guns2.create(1560, 634, 'gun2');
     	gun = guns3.create(850, 74, 'gun3');
-	
+	gun = guns2.create(1400, 70, 'gun2');
+	gun = guns.create(800, 510, 'gun');
         //  controls.
     cursors = game.input.keyboard.createCursorKeys();
     spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
