@@ -29,6 +29,11 @@ var GAME_WIDTH = 1600;
 var GAME_HEIGHT = 800;
 
 var spriteToBeRotated;
+var left;
+var right;
+var up;
+var down;
+var shift;
 //var angle = 0;
 
 
@@ -119,7 +124,8 @@ StickMan = function(index, game, player, serverx, servery, sangle) {
 		up: false,
 		fire: false,
         rotateClockwise: false,
-        rotateAntiClockwise: false
+        rotateAntiClockwise: false,
+        shift: false
 	};
 
 	this.input = {
@@ -128,7 +134,8 @@ StickMan = function(index, game, player, serverx, servery, sangle) {
 		up:false,
 		fire:false,
         rotateClockwise: false,
-        rotateAntiClockwise: false
+        rotateAntiClockwise: false,
+        shift: false
 	};
     
     
@@ -202,6 +209,7 @@ StickMan.prototype.snapShot = function() {
 	this.input.fire = false;
     this.rotateClockwise = false;
     this.rotateAntiClockwise = false;
+    this.shift = false;
     
 	this.input.tx = 0;
 	this.input.ty = 0;
@@ -219,8 +227,8 @@ StickMan.prototype.update = function() {
 			this.cursor.left != this.input.left ||
 			this.cursor.right != this.input.right ||
 			this.cursor.up != this.input.up ||
-            this.cursor.rotateClockwise != this.input.rotateClockwise ||
-            this.cursor.rotateAntiClockwise != this.input.rotateAntiClockwise ||
+            (this.cursor.rotateClockwise != this.input.rotateClockwise  &&  this.cursor.shift!= this.input.shift)||
+            (this.cursor.rotateAntiClockwise != this.input.rotateAntiClockwise &&  this.cursor.shift!= this.input.shift)||
 			this.cursor.fire != this.input.fire
 	);
 	if(stickman == this.stickman)
@@ -247,12 +255,13 @@ StickMan.prototype.update = function() {
 	}
     
     
-    if(this.cursor.rotateClockwise){
+    //if(this.cursor.rotateClockwise){
+    if(this.cursor.rotateClockwise && this.cursor.shift){
         console.log("rotateclockwise");
         this.stickman.angle +=6;
         //console.log("after",this.stickman.angle);
     }
-    else if(this.cursor.rotateAntiClockwise){
+    else if(this.cursor.rotateAntiClockwise && this.cursor.shift){
         console.log("rotateAnticlockwise");
         this.stickman.angle -=6;
         //console.log("after",this.stickman.angle);
@@ -387,10 +396,25 @@ function preload(){
 
 function create(){
     
-    rotateClockwise = game.input.keyboard.addKey(Phaser.Keyboard.A);
-    rotateAntiClockwise = game.input.keyboard.addKey(Phaser.Keyboard.D);
+    //rotateClockwise = game.input.keyboard.addKey(Phaser.Keyboard.A);
+    //rotateAntiClockwise = game.input.keyboard.addKey(Phaser.Keyboard.D);
+    
+    //cursors = game.input.keyboard.createCursorKeys();
+    left = game.input.keyboard.addKey(Phaser.Keyboard.A);
+    right = game.input.keyboard.addKey(Phaser.Keyboard.D);
+    up = game.input.keyboard.addKey(Phaser.Keyboard.W);
+    down = game.input.keyboard.addKey(Phaser.Keyboard.S);
+    
+    
+    //rotateClockwise = cursors.right;
+    //rotateAntiClockwise = cursors.left;
+    rotateClockwise = right;
+    rotateAntiClockwise = left;
+    
+    //control = game.input.keyboard.addKey(Phaser.Keyboard.CONTROL);
+    shift = game.input.keyboard.addKey(Phaser.Keyboard.SHIFT);
 
-    //  enable arcade physics system
+    // enable arcade physics system
     game.physics.startSystem(Phaser.Physics.ARCADE); 
     game.stage.disableVisibilityChange = true;
        
@@ -509,12 +533,12 @@ function create(){
 	gun = guns.create(800, 510, 'gun');
     
     //  controls.
-    cursors = game.input.keyboard.createCursorKeys();
-    spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    //cursors = game.input.keyboard.createCursorKeys();
+    //spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 	eurecaServer.handshake(myId, stickman.x, stickman.y);
     player.snapShot();
 
-    spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    //spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     //game.input.keyboard.addKey(Phaser.Keyboard.W);
     // rotateClockwise = game.input.keyboard.addKey(Phaser.Keyboard.A);
     //game.input.keyboard.addKey(Phaser.Keyboard.S);
@@ -528,13 +552,17 @@ function update(){
             //Do not update if client is not ready in Eureca
         if (!ready) return;
 
-		player.input.left = cursors.left.isDown;
+		/**player.input.left = cursors.left.isDown;
         player.input.right = cursors.right.isDown;
-        player.input.up = cursors.up.isDown;
+        player.input.up = cursors.up.isDown;**/
+    
+        player.input.left = left.isDown;
+        player.input.right = right.isDown;
+        player.input.up = up.isDown;
         player.input.fire = game.input.activePointer.isDown;
         player.input.rotateAntiClockwise = rotateAntiClockwise.isDown;
         player.input.rotateClockwise = rotateClockwise.isDown;
-    
+        player.input.shift = shift.isDown;  
         player.input.tx = game.input.x+ game.camera.x;
         player.input.ty = game.input.y+ game.camera.y;
 
@@ -561,16 +589,33 @@ function update(){
             
            
             
-            // stick to the reversed platform 
+            // stick to the sky 
             if(curStickman.angle <= 180 && curStickman.angle > 135 
                 || curStickman.angle < -135 && curStickman.angle >= -180 ){
                 curStickman.body.gravity.y = -200;
                 curStickman.body.gravity.x = 0;
                 
-                if(cursors.down.isDown){
+                //if(cursors.down.isDown){
+                if(down.isDown){
                     curStickman.body.velocity.y = 200;
                     curStickman.body.velocity.x = 0;
-                }   
+                }
+                //else if(cursors.left.isDown){
+                else if(left.isDown){
+                    curStickman.body.velocity.x = -150;
+                    curStickman.body.velocity.y = 0;
+                }
+                //else if(cursors.right.isDown){
+                else if(right.isDown){
+                    curStickman.body.velocity.x = 150;
+                    curStickman.body.velocity.y = 0;
+                }
+                //else if(cursors.up.isDown){
+                else if(up.isDown){
+                    curStickman.body.velocity.y = -200;
+                    curStickman.body.velocity.x = 0;      
+                }
+                
             }
             
             //stick to the ground
@@ -578,21 +623,29 @@ function update(){
                 ||curStickman.angle < 0 && curStickman.angle >= -45){
                 curStickman.body.gravity.y = 200;
                 curStickman.body.gravity.x = 0;
-                 if(cursors.right.isDown){
+                
+                
+                 //if(cursors.right.isDown){
+                if(right.isDown){
                     curStickman.body.velocity.x = 150;
                     curStickman.body.velocity.y = 0;
                 } 
-                
-                else if(cursors.left.isDown){
+                //else if(cursors.left.isDown){
+                else if(left.isDown){
                     curStickman.body.velocity.x = -150;
                     curStickman.body.velocity.y = 0;
                 }
-                
-                else if(cursors.up.isDown){
+                //else if(cursors.up.isDown){
+                else if(up.isDown){
                     curStickman.body.velocity.y = -350;
                     curStickman.body.velocity.x = 0;
                 }
-                
+                //else if(cursors.down.isDown){
+                else if(down.isDown){
+                    curStickman.body.velocity.y = 350;
+                    curStickman.body.velocity.x = 0;
+                }
+                    
             }
         
             //stick to the left wall
@@ -600,19 +653,26 @@ function update(){
                 //console.log("angle in 45,135", curStickman.angle);
                 curStickman.body.gravity.y = 0;
                 curStickman.body.gravity.x = -15000;
-                if(cursors.right.isDown){
+                //if(cursors.right.isDown){
+                if(right.isDown){
                     curStickman.body.gravity.x = 20000;
                     curStickman.body.gravity.y = 0;
                 } 
-                else if(cursors.up.isDown){
+                //if(cursors.left.isDown){
+                else if(left.isDown){
+                    curStickman.body.gravity.x = -20000;
+                    curStickman.body.gravity.y = 0;
+                }    
+                //else if(cursors.up.isDown){
+                else if(up.isDown){
                     curStickman.body.velocity.y = -150;
                     curStickman.body.velocity.x =0;
                 }
-                else if(cursors.down.isDown){
+                //else if(cursors.down.isDown){
+                else if(down.isDown){
                     curStickman.body.velocity.y = 150;
                     curStickman.body.velocity.x =0;
-                }
-                
+                }      
                 
             }
             
@@ -620,19 +680,26 @@ function update(){
             else if(curStickman.angle< -45 && curStickman.angle >= -135){
                 curStickman.body.gravity.y = 0;
                 curStickman.body.gravity.x = 20000;
-                if(cursors.left.isDown){
+                //if(cursors.left.isDown){
+                if(left.isDown){
                     curStickman.body.gravity.x = -20000; 
                     curStickman.body.gravity.y = 0;
                 }
-                else if(cursors.up.isDown){
+                //if(cursors.right.isDown){
+                if(right.isDown){
+                    curStickman.body.gravity.x = 20000; 
+                    curStickman.body.gravity.y = 0;
+                }
+                //else if(cursors.up.isDown){
+                else if(up.isDown){
                     curStickman.body.velocity.y = -150;
                     curStickman.body.velocity.x =0;
                 }
-                else if(cursors.down.isDown){
+                //else if(cursors.down.isDown){
+                else if(down.isDown){
                     curStickman.body.velocity.y = 150;
                     curStickman.body.velocity.x =0;
-                }
-                
+                }       
             }
             
             console.log(curStickman.angle);
