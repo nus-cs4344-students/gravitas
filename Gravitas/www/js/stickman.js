@@ -246,16 +246,16 @@ StickMan.prototype.update = function() {
 		//Right now does not immediately update gun rotation, not that we have a sprite for it
 	}
     
-     console.log("above");
+    
     if(this.cursor.rotateClockwise){
         console.log("rotateclockwise");
-        this.stickman.angle +=1;
-        console.log("after",this.stickman.angle);
+        this.stickman.angle +=6;
+        //console.log("after",this.stickman.angle);
     }
     else if(this.cursor.rotateAntiClockwise){
         console.log("rotateAnticlockwise");
-        this.stickman.angle -=1;
-        console.log("after",this.stickman.angle);
+        this.stickman.angle -=6;
+        //console.log("after",this.stickman.angle);
     }
 	else if(this.cursor.left)
 	{
@@ -362,7 +362,7 @@ function startgame(){
 }
 
 function preload(){
-     // preload the loading indicator first before anything else
+    // preload the loading indicator first before anything else
     game.load.image('preloaderBar', 'www/assets/loading-bar.png');
     
     // set background color and preload image
@@ -387,45 +387,45 @@ function preload(){
 
 function create(){
     
-        rotateClockwise = game.input.keyboard.addKey(Phaser.Keyboard.A);
-        rotateAntiClockwise = game.input.keyboard.addKey(Phaser.Keyboard.D);
+    rotateClockwise = game.input.keyboard.addKey(Phaser.Keyboard.A);
+    rotateAntiClockwise = game.input.keyboard.addKey(Phaser.Keyboard.D);
 
-        //  enable arcade physics system
-        game.physics.startSystem(Phaser.Physics.ARCADE); 
-        game.stage.disableVisibilityChange = true;
+    //  enable arcade physics system
+    game.physics.startSystem(Phaser.Physics.ARCADE); 
+    game.stage.disableVisibilityChange = true;
        
-        var background = game.add.sprite(0,0,'sky');
-        //  scalling background
-        background.scale.set(2,2);
+    var background = game.add.sprite(0,0,'sky');
+    //  scalling background
+    background.scale.set(2,2);
 
-        //  this group will contain all stage objects
-        platforms = game.add.group();
+    //  this group will contain all stage objects
+    platforms = game.add.group();
 
-        // enable physics for any object that is created in this group
-        platforms.enableBody = true;
+    // enable physics for any object that is created in this group
+    platforms.enableBody = true;
 
-        //  create the ground.
-        var ground = platforms.create(0, game.world.height - 64, 'ground');
-        // Scale it to fit the width of the game (the original sprite is 400x32 in size)
-        ground.scale.setTo(4, 2);
+    //  create the ground.
+    var ground = platforms.create(0, game.world.height - 64, 'ground');
+    // Scale it to fit the width of the game (the original sprite is 400x32 in size)
+    ground.scale.setTo(4, 2);
 
-       //  This stops it from falling away when you jump on it
-        ground.body.immovable = true;
+    //  This stops it from falling away when you jump on it
+    ground.body.immovable = true;
 
-        // bottom ledge
-        var ledge1 = platforms.create(600,500, 'ground');
-        ledge1.scale.setTo(0.6,0.1);
-        ledge1.body.immovable = true;
+    // bottom ledge
+    var ledge1 = platforms.create(600,500, 'ground');
+    ledge1.scale.setTo(0.6,0.1);
+    ledge1.body.immovable = true;
 
-        // middle ledge
-        var ledge2 = platforms.create(400,300, 'ground'); //x, y from left, sprite
-        ledge2.scale.setTo(0.4,0.1); //Length, thickness
-        ledge2.body.immovable = true;
+    // middle ledge
+    var ledge2 = platforms.create(400,300, 'ground'); //x, y from left, sprite
+    ledge2.scale.setTo(0.4,0.1); //Length, thickness
+    ledge2.body.immovable = true;
 
-        // top ledge
-        var ledge3 = platforms.create(700, 100, 'ground');
-        ledge3.scale.setTo(0.5,0.1);
-    	ledge3.body.immovable = true;
+    // top ledge
+    var ledge3 = platforms.create(700, 100, 'ground');
+    ledge3.scale.setTo(0.5,0.1);
+    ledge3.body.immovable = true;
 
 	var ledge4 = platforms.create(1000, 250, 'ground');
 	ledge4.scale.setTo(0.1, 0.1);
@@ -479,18 +479,18 @@ function create(){
 	ledge16.scale.setTo(0.3, 0.1);
 	ledge16.body.immovable = true;
 
-        // player settings
+    // player settings
     stickmanList = {};
 	var randomx = game.world.randomX;
 	var randomy = game.world.randomY-300;
     player = new StickMan(myId, game, stickman, randomx, randomy);
 	console.log("Randomx: ", randomx);
 	console.log("Randomy: ", randomy);
-        stickmanList[myId] = player;
-        stickman = player.stickman;
-        //stickman.x = randomx;
-        //stickman.y = randomy;
-        bullets = player.bullets;
+    stickmanList[myId] = player;
+    stickman = player.stickman;
+    //stickman.x = randomx;
+    //stickman.y = randomy;
+    bullets = player.bullets;
     guns = game.add.group();
 	guns2 = game.add.group();
 	guns3 = game.add.group();
@@ -498,26 +498,27 @@ function create(){
 	guns2.enableBody = true;
 	guns3.enableBody = true;
 
-        for (var i = 1; i < 3; i++)
-        {
-            var gun = guns.create(i * 250, 274, 'gun');
-        }
+    for (var i = 1; i < 3; i++)
+    {
+        var gun = guns.create(i * 250, 274, 'gun');
+    }
 
-        gun = guns2.create(1560, 634, 'gun2');
-    	gun = guns3.create(850, 74, 'gun3');
+    gun = guns2.create(1560, 634, 'gun2');
+    gun = guns3.create(850, 74, 'gun3');
 	gun = guns2.create(1400, 70, 'gun2');
 	gun = guns.create(800, 510, 'gun');
-        //  controls.
+    
+    //  controls.
     cursors = game.input.keyboard.createCursorKeys();
     spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 	eurecaServer.handshake(myId, stickman.x, stickman.y);
     player.snapShot();
 
-        spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-        //game.input.keyboard.addKey(Phaser.Keyboard.W);
-       // rotateClockwise = game.input.keyboard.addKey(Phaser.Keyboard.A);
-        //game.input.keyboard.addKey(Phaser.Keyboard.S);
-        //rotateAntiClockwise = game.input.keyboard.addKey(Phaser.Keyboard.D);
+    spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    //game.input.keyboard.addKey(Phaser.Keyboard.W);
+    // rotateClockwise = game.input.keyboard.addKey(Phaser.Keyboard.A);
+    //game.input.keyboard.addKey(Phaser.Keyboard.S);
+    //rotateAntiClockwise = game.input.keyboard.addKey(Phaser.Keyboard.D);
         
         
 };
@@ -546,16 +547,101 @@ function update(){
         }
     
         **/
-        game.physics.arcade.collide(stickman, platforms);
-    game.physics.arcade.collide(guns, platforms);
-	game.physics.arcade.collide(guns2, platforms);
-	game.physics.arcade.collide(guns3, platforms);
+       game.physics.arcade.collide(stickman, platforms);
+       game.physics.arcade.collide(guns, platforms);
+	   game.physics.arcade.collide(guns2, platforms);
+	   game.physics.arcade.collide(guns3, platforms);
 
         for(var i in stickmanList)
         {
             if(!stickmanList[i]) continue;
             var curBullets = stickmanList[i].bullets;
             var curStickman = stickmanList[i].stickman;
+            
+            
+           
+            
+            // stick to the reversed platform 
+            if(curStickman.angle <= 180 && curStickman.angle > 135 
+                || curStickman.angle < -135 && curStickman.angle >= -180 ){
+                curStickman.body.gravity.y = -200;
+                curStickman.body.gravity.x = 0;
+                
+                if(cursors.down.isDown){
+                    curStickman.body.velocity.y = 200;
+                    curStickman.body.velocity.x = 0;
+                }   
+            }
+            
+            //stick to the ground
+            else if (curStickman.angle <= 45 && curStickman.angle >=0
+                ||curStickman.angle < 0 && curStickman.angle >= -45){
+                curStickman.body.gravity.y = 200;
+                curStickman.body.gravity.x = 0;
+                 if(cursors.right.isDown){
+                    curStickman.body.velocity.x = 150;
+                    curStickman.body.velocity.y = 0;
+                } 
+                
+                else if(cursors.left.isDown){
+                    curStickman.body.velocity.x = -150;
+                    curStickman.body.velocity.y = 0;
+                }
+                
+                else if(cursors.up.isDown){
+                    curStickman.body.velocity.y = -350;
+                    curStickman.body.velocity.x = 0;
+                }
+                
+            }
+        
+            //stick to the left wall
+            else if (curStickman.angle <= 135 && curStickman.angle >45){
+                //console.log("angle in 45,135", curStickman.angle);
+                curStickman.body.gravity.y = 0;
+                curStickman.body.gravity.x = -15000;
+                if(cursors.right.isDown){
+                    curStickman.body.gravity.x = 20000;
+                    curStickman.body.gravity.y = 0;
+                } 
+                else if(cursors.up.isDown){
+                    curStickman.body.velocity.y = -150;
+                    curStickman.body.velocity.x =0;
+                }
+                else if(cursors.down.isDown){
+                    curStickman.body.velocity.y = 150;
+                    curStickman.body.velocity.x =0;
+                }
+                
+                
+            }
+            
+            //stick to the right wall
+            else if(curStickman.angle< -45 && curStickman.angle >= -135){
+                curStickman.body.gravity.y = 0;
+                curStickman.body.gravity.x = 20000;
+                if(cursors.left.isDown){
+                    curStickman.body.gravity.x = -20000; 
+                    curStickman.body.gravity.y = 0;
+                }
+                else if(cursors.up.isDown){
+                    curStickman.body.velocity.y = -150;
+                    curStickman.body.velocity.x =0;
+                }
+                else if(cursors.down.isDown){
+                    curStickman.body.velocity.y = 150;
+                    curStickman.body.velocity.x =0;
+                }
+                
+            }
+            
+            console.log(curStickman.angle);
+            console.log("gravityx", curStickman.body.gravity.x);
+            console.log("gravityy", curStickman.body.gravity.y);
+            //console.log("velx", curStickman.body.velocity.x);
+            //console.log("vely", curStickman.body.velocity.y); 
+            
+            
 			//For every stickman, check if their bullets collide with platform.
 			game.physics.arcade.collide(curBullets, platforms, destroyBullets, null, this);
 			game.physics.arcade.overlap(curStickman, guns, collectGun, null, this);
