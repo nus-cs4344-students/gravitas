@@ -6,6 +6,7 @@ Gravitas.MainMenu.prototype = {
         this.load.image('ground', 'www/assets/platform.png');
         this.load.image('gun', 'www/assets/smallgun1.png');
         this.load.image('bullet', 'www/assets/pbullet.gif');
+       // this.load.image('left_button', 'www/assets/left.png');   
         this.load.spritesheet('healthBar','www/assets/healthbar.png' , 32,35.2); 
         this.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48);
     

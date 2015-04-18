@@ -366,7 +366,8 @@ function startgame(){
     game.add.sprite((GAME_WIDTH-500)/2, 30, 'title');
     game.add.sprite((GAME_WIDTH)/2-500, 350,'figure');
     // add the button that will start the game
-    //game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'button-start', eurecaClientSetup, 1, 0, 2);
+    game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'button-start', eurecaClientSetup, 1, 0, 2);
+    //game.add.button(GAME_WIDTH-200, GAME_HEIGHT-143-50, 'left_button', eurecaClientSetup); 
 
 }
 
@@ -380,7 +381,7 @@ function preload(){
     game.load.image('title', 'www/assets/gravitaslogo.png');
     game.load.image('figure', 'www/assets/stickman.png');
     game.load.spritesheet('button-start', 'www/assets/button-start.png', 401, 143); 
-    game.load.image('left_button', 'www/assets/left.jpg');      
+    game.load.image('left_button', 'www/assets/left.png');      
     
     game.load.image('sky', 'www/assets/sky2.png');
     game.load.image('ground', 'www/assets/platform.png');
@@ -407,7 +408,7 @@ function create(){
     down = game.input.keyboard.addKey(Phaser.Keyboard.S);
 
     // Add touch buttons
-    //left_button = game.add.button(GAME_WIDTH-200, GAME_HEIGHT-143-50, 'left-button', eurecaClientSetup);
+
     //left_button.inputEnabled = true;
     //left_button.visible = true;
     //right_button = game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'control-buttons',eurecaClientSetup, 1);
@@ -558,6 +559,9 @@ function create(){
     //spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 	eurecaServer.handshake(myId, stickman.x, stickman.y);
     player.snapShot();
+    
+    leftButton = game.add.button(GAME_WIDTH-1400, GAME_HEIGHT-50, 'left_button', null);
+    leftButton.scale.set(0.1,0.1);
 
     //spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     //game.input.keyboard.addKey(Phaser.Keyboard.W);
