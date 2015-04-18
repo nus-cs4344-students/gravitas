@@ -219,7 +219,7 @@ StickMan.prototype.snapShot = function() {
 	this.input.left = false;
 	this.input.right = false;
 	this.input.up = false;
-    this.input.down = false;
+
 	this.input.fire = false;
     this.rotateClockwise = false;
     this.rotateAntiClockwise = false;
@@ -246,7 +246,6 @@ StickMan.prototype.update = function() {
 			this.cursor.left != this.input.left ||
 			this.cursor.right != this.input.right ||
 			this.cursor.up != this.input.up ||
-            this.cursor.down != this.input.down ||
             (this.cursor.rotateClockwise != this.input.rotateClockwise  &&  this.cursor.shift!= this.input.shift)||
          (this.cursor.rotateAntiClockwise != this.input.rotateAntiClockwise &&  this.cursor.shift!= this.input.shift)||
 			this.cursor.fire != this.input.fire
@@ -350,45 +349,179 @@ StickMan.prototype.update = function() {
 			this.stickman.frame = 4;
 		}
 	}
-	if(this.cursor.up && this.stickman.body.touching.down)
+
+
+    //For the up key - JUMP 
+    //stick to the ground
+	if( (this.stickman.angle <= 45 && this.stickman.angle >=0
+                ||this.stickman.angle < 0 && this.stickman.angle >= -45) && this.cursor.up && this.stickman.body.touching.down)
 	{
 		this.stickman.body.velocity.y = -350;
+        this.stickman.body.velocity.x = 0;
 	}
+    //stick to the sky
+    else if( (this.cursor.up &&this.stickman.body.touching.up) ||  (this.cursor.up && this.stickman.body.blocked.up) ){
+        this.stickman.body.velocity.y = 350;
+        this.stickman.body.velocity.x = 0;
+    }
+    //touching left ledges or left boundary the game
+    else if ( (this.stickman.angle <= 135 && this.stickman.angle >45 && this.cursor.up  && this.stickman.body.touching.left)
+        ||  (this.stickman.angle <= 135 && this.stickman.angle >45 && this.cursor.up  && this.stickman.body.blocked.left) ){
+        this.stickman.body.velocity.x = 1000;
+
+        /**console.log("this.stickman.body.blocked.up",this.stickman.body.blocked.up);
+        console.log("this.stickman.body.blocked.down", this.stickman.body.blocked.down);
+        console.log("this.stickman.body.blocked.left", this.stickman.body.blocked.left);
+        console.log("this.stickman.body.blocked.right", this.stickman.body.blocked.right); **/
+
+        //console.log("this.stickman.body.touching.up",this.stickman.body.touching.up);
+        //console.log("this.stickman.body.touching.down", this.stickman.body.touching.
+        //console.log("this.stickman.body.touching.left")
+        //console.log("this.stickman.body.touching.right", this.stickman.body.touching.right);
+    }
+     //touching right ledges or right boundary the game
+    else if( (this.stickman.angle< -45 && this.stickman.angle >= -135 && this.cursor.up && this.stickman.body.touching.right)
+        || (this.stickman.angle< -45 && this.stickman.angle >= -135 && this.cursor.up && this.stickman.body.blocked.right) ){
+        this.stickman.body.velocity.x = 1000;
+    }
+
+
+
+    //console.log("this.stickman.body.touching.left: ", this.stickman.body.touching.left);
+    //console.log("this.stickman.body.blocked.left: ",this.stickman.body.blocked.left);
+
+
+    //For the left keys - move towards left
+
+    //stick to the ground
+    if( (this.stickman.angle <= 45 && this.stickman.angle >=0
+                ||this.stickman.angle < 0 && this.stickman.angle >= -45) && this.cursor.left && this.stickman.body.touching.down)
+    {
+         this.stickman.body.velocity.x = -350;
+    }
+    //stick to the sky 
+    else if( (this.cursor.up &&this.stickman.body.touching.up) ||  (this.cursor.left && this.stickman.body.blocked.up) ){
+          this.stickman.body.velocity.x = -350;
+    }
+
+    //touching left ledges or left boundary the game
+    else if( (this.stickman.angle <= 135 && this.stickman.angle >45 && this.cursor.left  && this.stickman.body.touching.left)
+        ||  (this.stickman.angle <= 135 && this.stickman.angle >45 && this.cursor.left  && this.stickman.body.blocked.left) ){
+        console.log("move towards left for left ledge");
+        this.stickman.body.velocity.y = -500;
+    }
+     //touching right ledges or right boundary the game
+    else if( (this.stickman.angle< -45 && this.stickman.angle >= -135 && this.cursor.left && this.stickman.body.touching.right)
+        || (this.stickman.angle< -45 && this.stickman.angle >= -135 && this.cursor.left && this.stickman.body.blocked.right) ){
+         console.log("move towards left for right ledge");
+        this.stickman.body.velocity.y = 500;
+    }
+
+
+
+  //For the right keys - move towards right
+
+    //stick to the ground
+    if( (this.stickman.angle <= 45 && this.stickman.angle >=0
+                ||this.stickman.angle < 0 && this.stickman.angle >= -45) && this.cursor.right && this.stickman.body.touching.down)
+    {
+         this.stickman.body.velocity.x = 350;
+    }
+    //stick to the sky 
+    else if( (this.cursor.up &&this.stickman.body.touching.up) ||  (this.cursor.right && this.stickman.body.blocked.up) ){
+          this.stickman.body.velocity.x = 350;
+    }
+    //touching left ledges or left boundary the game
+    else if ( (this.stickman.angle <= 135 && this.stickman.angle >45 && this.cursor.right  && this.stickman.body.touching.left)
+        ||  (this.stickman.angle <= 135 && this.stickman.angle >45 && this.cursor.right  && this.stickman.body.blocked.left) ){
+        console.log("move towards right for left ledge");
+        this.stickman.body.velocity.y = 500;
+    }
+     //touching right ledges or right boundary the game
+    else if( (this.stickman.angle< -45 && this.stickman.angle >= -135 && this.cursor.right && this.stickman.body.touching.right)
+        || (this.stickman.angle< -45 && this.stickman.angle >= -135 && this.cursor.right && this.stickman.body.blocked.right) ){
+         console.log("move towards right for right ledge");
+        this.stickman.body.velocity.y = -500;
+    }
+
+
+
+
+
+    /**
+    else if( (this.cursor.up && this.stickman.body.touching.left) ||   (this.cursor.up && this.stickman.body.blocked.left)   ){
+        console.log("left");
+        this.stickman.body.gravity.x = 20000;
+        this.stickman.body.gravity.y = 0;
+
+    }
+
+    else if( (this.cursor.up && this.stickman.body.touching.right) ||   (this.cursor.up && this.stickman.body.blocked.right)   ){
+        console.log("right");
+        this.stickman.body.gravity.x = -20000; 
+        this.stickman.body.gravity.y = 0;
+    
+    } **/
+
+
+
+
 	if (this.cursor.fire && this.stickman.alive !== false) //Fire in the direction of the cursor position 
 	{
 		this.fire({x:this.cursor.tx, y:this.cursor.ty}); //Values to be sent to server include these, as part of this.input as declared in update() 
         //console.log("FIREEEE");
 	}
+
+     //console.log("stickman angle",this.stickman.angle)
          //stick to the sky   
+     
+     
+
+     
+     
      if(this.stickman.angle <= 180 && this.stickman.angle > 135 
                 || this.stickman.angle < -135 && this.stickman.angle >= -180 ){
+
+
                 this.stickman.body.gravity.y = -200;
                 this.stickman.body.gravity.x = 0;
-                
-                /**
-                //if(cursors.down.isDown){
-                if(this.input.isDown){
+               
+                //if(down.isDown){
+                /** if(this.input.down.isDown){
+                    console.log("stickman down");
                     this.stickman.body.velocity.y = 200;
                     this.stickman.body.velocity.x = 0;
-                } 
-                //else if(cursors.left.isDown){
-                else if(this.input.left.isDown && !this.input.shift.isDown){
+                } **/ 
+                //if(left.isDown && !shift.isDown){
+                
+               // console.log("this.stickman.body.blocked.up : ",this.stickman.body.blocked.up);
+                // console.log("this.stickman.body.touching.up : ", this.stickman.body.touching.up);
+
+                /**
+         
+               if(this.input.left && !this.input.shift && this.stickman.body.blocked.up
+                 || this.input.left && !this.input.shift && this.stickman.body.touching.up){
+                    console.log("stickman left");
                     this.stickman.body.velocity.x = -150;
                     this.stickman.body.velocity.y = 0;
                 }
-                //else if(cursors.right.isDown){
-                else if(this.input.right.isDown && !this.input.shift.isDown){
+                //else if(right.isDown && !shift.isDown){
+                else if(this.input.right && !this.input.shift && this.stickman.body.blocked.up 
+                       || this.input.right && !this.input.shift && this.stickman.body.touching.up){
+                    console.log("stickman right");
                     this.stickman.body.velocity.x = 150;
                     this.stickman.body.velocity.y = 0;
                 }
-                //else if(cursors.up.isDown){
-                else if(this.input.up.isDown){
-                    this.stickman.body.velocity.y = -200;
+                //else if(up.isDown){
+                else if(this.input.up && this.stickman.body.blocked.up || this.input.up && this.stickman.body.touching.up ){
+                    console.log("stickman up");
+                    this.stickman.body.velocity.y = 200;
                     this.stickman.body.velocity.x = 0;      
-                } **/
+                }**/
             
                 
-            }
+            } 
+            
             
             //stick to the ground
             else if (this.stickman.angle <= 45 && this.stickman.angle >=0
@@ -426,7 +559,7 @@ StickMan.prototype.update = function() {
             else if (this.stickman.angle <= 135 && this.stickman.angle >45){
                 //console.log("angle in 45,135", curStickman.angle);
                 this.stickman.body.gravity.y = 0;
-                this.stickman.body.gravity.x = -15000;  
+                this.stickman.body.gravity.x = -10000;  
                 
                 /**
                 //if(cursors.right.isDown){
@@ -458,7 +591,7 @@ StickMan.prototype.update = function() {
             else if(this.stickman.angle< -45 && this.stickman.angle >= -135){
                 console.log("this.angle");
                 this.stickman.body.gravity.y = 0;
-                this.stickman.body.gravity.x = 20000;
+                this.stickman.body.gravity.x = 10000;
                 
                 /**
                 //if(cursors.left.isDown){
@@ -737,7 +870,7 @@ function update(){
         player.input.left = left.isDown;
         player.input.right = right.isDown;
         player.input.up = up.isDown;
-        player.input.down = down.isDown;
+       // player.input.down = down.isDown;
         player.input.fire = game.input.activePointer.isDown;
         player.input.rotateAntiClockwise = rotateAntiClockwise.isDown;
         player.input.rotateClockwise = rotateClockwise.isDown;
@@ -750,35 +883,50 @@ function update(){
 	   game.physics.arcade.collide(guns2, platforms);
 	   game.physics.arcade.collide(guns3, platforms);
     
+        
+            console.log("player angle",player.stickman.angle);
+            console.log("player update up",player.input.up);
+    
+    
+        
             //stick to the sky
           if(player.stickman.angle <= 180 && player.stickman.angle > 135 
                 || player.stickman.angle < -135 && player.stickman.angle >= -180 ){
                 player.stickman.body.gravity.y = -200;
                 player.stickman.body.gravity.x = 0;
+                //player.stickman.body.velocity.x = 0;
+                //player.stickman.body.velocity.y = 0;
                 
-                /**
-                //if(cursors.down.isDown){
-                if(player.input.isDown){
+            
+                //if(down.isDown){
+                /** if(player.input.down.isDown){
+                    console.log("player down");
                     player.stickman.body.velocity.y = 200;
                     player.stickman.body.velocity.x = 0;
-                } 
-                //else if(cursors.left.isDown){
-                else if(player.input.left.isDown && !player.input.shift.isDown){
+                }  **/
+                //if(left.isDown && !shift.isDown){
+                    /**
+                if((player.input.left && !player.input.shift && player.stickman.body.blocked.up)
+                  || (player.input.left && !player.input.shift && player.stickman.body.touching.up) ){
+                    console.log("player left");
                     player.stickman.body.velocity.x = -150;
                     player.stickman.body.velocity.y = 0;
                 }
-                //else if(cursors.right.isDown){
-                else if(player.input.right.isDown && !player.input.shift.isDown){
+                //else if(right.isDown && !shift.isDown){
+                else if( (player.input.right && !player.input.shift && player.stickman.body.blocked.up)
+                       || (player.input.right && !player.input.shift && player.stickman.body.touching.up) ){
+                    console.log("player right");
                     player.stickman.body.velocity.x = 150;
                     player.stickman.body.velocity.y = 0;
                 }
-                //else if(cursors.up.isDown){
-                else if(player.input.up.isDown){
-                    player.stickman.body.velocity.y = -200;
+                //else if(up.isDown){
+                else if( (player.input.up && player.stickman.body.blocked.up) 
+                        || (player.input.up && player.stickman.body.touching.up) ){
+                    console.log("player up");
+                    player.stickman.body.velocity.y = 200;
                     player.stickman.body.velocity.x = 0;      
-                } **/
-                
-            }
+                } **/          
+            } 
             
             //stick to the ground
             else if (player.stickman.angle <= 45 && player.stickman.angle >=0
@@ -814,7 +962,7 @@ function update(){
             else if (player.stickman.angle <= 135 && player.stickman.angle >45){
                 //console.log("angle in 45,135", curStickman.angle);
                 player.stickman.body.gravity.y = 0;
-                player.stickman.body.gravity.x = -15000;
+                player.stickman.body.gravity.x = -10000;
                 
                 /**
                 //if(cursors.right.isDown){
@@ -843,7 +991,7 @@ function update(){
             //stick to the right wall
             else if(player.stickman.angle< -45 && player.stickman.angle >= -135){
                 player.stickman.body.gravity.y = 0;
-                player.stickman.body.gravity.x = 20000;
+                player.stickman.body.gravity.x = 10000;
                 console.log("player.angle");
                 /**
                 //if(cursors.left.isDown){
