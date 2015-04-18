@@ -35,6 +35,9 @@ var up;
 var down;
 var shift;
 //var angle = 0;
+var countClockwise;
+var countAntiClockwise;
+
 
 
 //this function will handle client communication with the server
@@ -92,7 +95,7 @@ var eurecaClientSetup = function(){
             stickmanList[id].cursor = state; //left/right/up/fire states
             stickmanList[id].stickman.x = state.x;
             stickmanList[id].stickman.y = state.y;
-            stickmanList[id].stickman.angle = state.angle;
+            stickmanList[id].stickman.angle = state.angle;              
             stickmanList[id].update();
         }
     };  
@@ -118,10 +121,13 @@ var eurecaClientSetup = function(){
 
 
 StickMan = function(index, game, player, serverx, servery, sangle) {
+    //this.id = index;
+    
     this.cursor = {
 		left:false,
 		right: false,
 		up: false,
+        down: false,
 		fire: false,
         rotateClockwise: false,
         rotateAntiClockwise: false,
@@ -132,11 +138,18 @@ StickMan = function(index, game, player, serverx, servery, sangle) {
 		left:false,
 		right:false,
 		up:false,
+        down: false,
 		fire:false,
         rotateClockwise: false,
         rotateAntiClockwise: false,
         shift: false
 	};
+    
+    this.count = {
+        countClockwise: false,
+        countAntiClockwise: false
+        
+    };
     
     
 	//Zero if originally not present on server, as specified in server.js;
@@ -180,7 +193,7 @@ StickMan = function(index, game, player, serverx, servery, sangle) {
 	this.stickman.id = index;
 	game.physics.enable(this.stickman, Phaser.Physics.ARCADE);
 	this.stickman.body.immovable = false;
-	this.stickman.body.collideWorldBounds = true;
+	//this.stickman.body.collideWorldBounds = true;
 
 	this.stickman.angle = sangle;    
     // player properties
@@ -206,15 +219,21 @@ StickMan.prototype.snapShot = function() {
 	this.input.left = false;
 	this.input.right = false;
 	this.input.up = false;
+    this.input.down = false;
 	this.input.fire = false;
     this.rotateClockwise = false;
     this.rotateAntiClockwise = false;
     this.shift = false;
     
+    this.count.countClockwise = false;
+    this.count.countAntiClockwise = false;
+    
+    
 	this.input.tx = 0;
 	this.input.ty = 0;
     this.input.x = this.stickman.x;
 	this.input.y = this.stickman.y;
+    
     
 	this.input.angle = 0;
 	console.log("snapShot: ");
@@ -227,14 +246,20 @@ StickMan.prototype.update = function() {
 			this.cursor.left != this.input.left ||
 			this.cursor.right != this.input.right ||
 			this.cursor.up != this.input.up ||
+            this.cursor.down != this.input.down ||
             (this.cursor.rotateClockwise != this.input.rotateClockwise  &&  this.cursor.shift!= this.input.shift)||
-            (this.cursor.rotateAntiClockwise != this.input.rotateAntiClockwise &&  this.cursor.shift!= this.input.shift)||
+         (this.cursor.rotateAntiClockwise != this.input.rotateAntiClockwise &&  this.cursor.shift!= this.input.shift)||
 			this.cursor.fire != this.input.fire
-	);
+	);   
+    
+    //var clockwiseRotationChanged = this.input.rotateClockwise  &&  this.input.shift;
+   // var anticlockwiseRotationChanged = this.input.rotateAntiClockwise &&  this.input.shift;
+        
+    
 	if(stickman == this.stickman)
 	this.healthText.text = this.stickman.health; //Update health every time this is called.
-
-	if(inputChanged && readyToMove)
+    
+	if(inputChanged && readyToMove )
 	{
 		//Send values to server
 		if(this.stickman.id == myId)
@@ -242,7 +267,35 @@ StickMan.prototype.update = function() {
 			this.input.x = this.stickman.x;
 			this.input.y = this.stickman.y;
             this.input.angle = this.stickman.angle;
-				
+                     
+            console.log("angle", this.stickman.angle);
+            /**
+            if((this.count.countClockwise == 0 && clockwiseRotationChanged) || 
+                    this.count.countAntiClockwise == 0 && anticlockwiseRotationChanged){
+                this.input.angle = this.stickman.angle;
+                if(clockwiseRotationChanged){
+                    this.count.countClockwise = true;
+                    console.log("start rotating clockwise");
+                }
+                else if(anticlockwiseRotationChanged){
+                    this.countAntiClockwise = true;
+                    console.log("start rotating anticlockwise");
+                }
+            }
+            
+           else if((this.countClockwise == 1 && !clockwiseRotationChanged) || this.countAntiClockwise == 1 && !anticlockwiseRotationChanged){
+                this.input.angle = this.stickman.angle;
+                if(!clockwiseRotationChanged){
+                    this.countClockwise = false;
+                    console.log("stop rotating clockwise");
+                }
+                else if(!anticlockwiseRotationChanged){
+                    this.countAntiClockwise = false;
+                    console.log("stop rotating anticlockwise");
+                }
+            
+            }
+            **/
             // whenever there is a change in user input, the client will call
             // the server side handleKeys function. The handleKeys function will 
             // in turn invoke the client updateState function. The updateState function
@@ -257,15 +310,16 @@ StickMan.prototype.update = function() {
     
     //if(this.cursor.rotateClockwise){
     if(this.cursor.rotateClockwise && this.cursor.shift){
-        console.log("rotateclockwise");
-        this.stickman.angle +=6;
+        //console.log("rotateclockwise");
+        this.stickman.angle +=1;
         //console.log("after",this.stickman.angle);
     }
     else if(this.cursor.rotateAntiClockwise && this.cursor.shift){
-        console.log("rotateAnticlockwise");
-        this.stickman.angle -=6;
+        //console.log("rotateAnticlockwise");
+        this.stickman.angle -=1;
         //console.log("after",this.stickman.angle);
     }
+    
 	else if(this.cursor.left)
 	{
 		this.stickman.body.velocity.x = -150;
@@ -303,8 +357,132 @@ StickMan.prototype.update = function() {
 	if (this.cursor.fire && this.stickman.alive !== false) //Fire in the direction of the cursor position 
 	{
 		this.fire({x:this.cursor.tx, y:this.cursor.ty}); //Values to be sent to server include these, as part of this.input as declared in update() 
+        //console.log("FIREEEE");
 	}
-	
+         //stick to the sky   
+     if(this.stickman.angle <= 180 && this.stickman.angle > 135 
+                || this.stickman.angle < -135 && this.stickman.angle >= -180 ){
+                this.stickman.body.gravity.y = -200;
+                this.stickman.body.gravity.x = 0;
+                
+                /**
+                //if(cursors.down.isDown){
+                if(this.input.isDown){
+                    this.stickman.body.velocity.y = 200;
+                    this.stickman.body.velocity.x = 0;
+                } 
+                //else if(cursors.left.isDown){
+                else if(this.input.left.isDown && !this.input.shift.isDown){
+                    this.stickman.body.velocity.x = -150;
+                    this.stickman.body.velocity.y = 0;
+                }
+                //else if(cursors.right.isDown){
+                else if(this.input.right.isDown && !this.input.shift.isDown){
+                    this.stickman.body.velocity.x = 150;
+                    this.stickman.body.velocity.y = 0;
+                }
+                //else if(cursors.up.isDown){
+                else if(this.input.up.isDown){
+                    this.stickman.body.velocity.y = -200;
+                    this.stickman.body.velocity.x = 0;      
+                } **/
+            
+                
+            }
+            
+            //stick to the ground
+            else if (this.stickman.angle <= 45 && this.stickman.angle >=0
+                ||this.stickman.angle < 0 && this.stickman.angle >= -45){
+                this.stickman.body.gravity.y = 200;
+                this.stickman.body.gravity.x = 0;
+                
+                /**
+                 //if(cursors.right.isDown){
+                if(this.input.right.isDown && !this.input.shift.isDown){
+                    this.stickman.body.velocity.x = 150;
+                    this.stickman.body.velocity.y = 0;
+                } 
+                //else if(cursors.left.isDown){
+                else if(this.input.left.isDown && !this.input.shift.isDown){
+                    this.stickman.body.velocity.x = -150;
+                    this.stickman.body.velocity.y = 0;
+                }
+                //else if(cursors.up.isDown){
+                else if(this.input.up.isDown){
+                    this.stickman.body.velocity.y = -350;
+                    this.stickman.body.velocity.x = 0;
+                }
+                //else if(cursors.down.isDown){
+                else if(this.input.down.isDown){
+                    this.stickman.body.velocity.y = 350;
+                    this.stickman.body.velocity.x = 0;
+                } **/
+                
+                
+                    
+            }
+        
+            //stick to the left wall
+            else if (this.stickman.angle <= 135 && this.stickman.angle >45){
+                //console.log("angle in 45,135", curStickman.angle);
+                this.stickman.body.gravity.y = 0;
+                this.stickman.body.gravity.x = -15000;  
+                
+                /**
+                //if(cursors.right.isDown){
+                if(this.input.right.isDown && !this.input.shift.isDown){
+                    this.stickman.body.gravity.x = 20000;
+                    this.stickman.body.gravity.y = 0;
+                } 
+                //if(cursors.left.isDown){
+                else if(this.input.left.isDown && !this.input.shift.isDown){
+                    this.stickman.body.gravity.x = -20000;
+                    this.stickman.body.gravity.y = 0;
+                }    
+                //else if(cursors.up.isDown){
+                else if(this.input.up.isDown){
+                    this.stickman.body.velocity.y = -150;
+                    this.stickman.body.velocity.x =0;
+                }
+                //else if(cursors.down.isDown){
+                else if(this.input.down.isDown){
+                    this.stickman.body.velocity.y = 150;
+                    this.stickman.body.velocity.x =0;
+                } 
+                **/
+                
+                
+            }
+            
+            //stick to the right wall
+            else if(this.stickman.angle< -45 && this.stickman.angle >= -135){
+                console.log("this.angle");
+                this.stickman.body.gravity.y = 0;
+                this.stickman.body.gravity.x = 20000;
+                
+                /**
+                //if(cursors.left.isDown){
+                if(this.input.left.isDown && !this.input.shift.isDown){
+                    this.stickman.body.gravity.x = -20000; 
+                    this.stickman.body.gravity.y = 0;
+                }
+                //if(cursors.right.isDown){
+                if(this.input.right.isDown && !this.input.shift.isDown){
+                    this.stickman.body.gravity.x  = 20000; 
+                    this.stickman.body.gravity.y = 0;
+                }
+                //else if(cursors.up.isDown){
+                else if(this.input.up.isDown){
+                    this.stickman.body.velocity.y = -150;
+                    this.stickman.body.velocity.x =0;
+                }
+                //else if(cursors.down.isDown){
+                else if(this.input.down.isDown){
+                    this.stickman.body.velocity.y = 150;
+                    this.stickman.body.velocity.x =0;
+                }  **/     
+            }
+
 };
 
 StickMan.prototype.fire = function(target)
@@ -559,152 +737,151 @@ function update(){
         player.input.left = left.isDown;
         player.input.right = right.isDown;
         player.input.up = up.isDown;
+        player.input.down = down.isDown;
         player.input.fire = game.input.activePointer.isDown;
         player.input.rotateAntiClockwise = rotateAntiClockwise.isDown;
         player.input.rotateClockwise = rotateClockwise.isDown;
         player.input.shift = shift.isDown;  
         player.input.tx = game.input.x+ game.camera.x;
         player.input.ty = game.input.y+ game.camera.y;
-
-        /**
-        if(rotateClockwise.isDown){
-            spriteToBeRotated.angle +=1; 
-        }  
-        if(rotateAntiClockwise.isDown){
-            spriteToBeRotated.angle -=1;
-        }
     
-        **/
        game.physics.arcade.collide(stickman, platforms);
        game.physics.arcade.collide(guns, platforms);
 	   game.physics.arcade.collide(guns2, platforms);
 	   game.physics.arcade.collide(guns3, platforms);
-
+    
+            //stick to the sky
+          if(player.stickman.angle <= 180 && player.stickman.angle > 135 
+                || player.stickman.angle < -135 && player.stickman.angle >= -180 ){
+                player.stickman.body.gravity.y = -200;
+                player.stickman.body.gravity.x = 0;
+                
+                /**
+                //if(cursors.down.isDown){
+                if(player.input.isDown){
+                    player.stickman.body.velocity.y = 200;
+                    player.stickman.body.velocity.x = 0;
+                } 
+                //else if(cursors.left.isDown){
+                else if(player.input.left.isDown && !player.input.shift.isDown){
+                    player.stickman.body.velocity.x = -150;
+                    player.stickman.body.velocity.y = 0;
+                }
+                //else if(cursors.right.isDown){
+                else if(player.input.right.isDown && !player.input.shift.isDown){
+                    player.stickman.body.velocity.x = 150;
+                    player.stickman.body.velocity.y = 0;
+                }
+                //else if(cursors.up.isDown){
+                else if(player.input.up.isDown){
+                    player.stickman.body.velocity.y = -200;
+                    player.stickman.body.velocity.x = 0;      
+                } **/
+                
+            }
+            
+            //stick to the ground
+            else if (player.stickman.angle <= 45 && player.stickman.angle >=0
+                ||player.stickman.angle < 0 && player.stickman.angle >= -45){
+                player.stickman.body.gravity.y = 200;
+                player.stickman.body.gravity.x = 0;
+                
+                /**
+                 //if(cursors.right.isDown){
+                if(player.input.right.isDown && !player.input.shift.isDown){
+                    player.stickman.body.velocity.x = 150;
+                    player.stickman.body.velocity.y = 0;
+                } 
+                //else if(cursors.left.isDown){
+                else if(player.input.left.isDown && !player.input.shift.isDown){
+                    player.stickman.body.velocity.x = -150;
+                    player.stickman.body.velocity.y = 0;
+                }
+                //else if(cursors.up.isDown){
+                else if(player.input.up.isDown){
+                    player.stickman.body.velocity.y = -350;
+                    player.stickman.body.velocity.x = 0;
+                }
+                //else if(cursors.down.isDown){
+                else if(player.input.down.isDown){
+                    player.stickman.body.velocity.y = 350;
+                    player.stickman.body.velocity.x = 0;
+                } **/
+                    
+            }
+        
+            //stick to the left wall
+            else if (player.stickman.angle <= 135 && player.stickman.angle >45){
+                //console.log("angle in 45,135", curStickman.angle);
+                player.stickman.body.gravity.y = 0;
+                player.stickman.body.gravity.x = -15000;
+                
+                /**
+                //if(cursors.right.isDown){
+                if(player.input.right.isDown && !player.input.shift.isDown){
+                    player.stickman.body.gravity.x = 20000;
+                    player.stickman.body.gravity.y = 0;
+                } 
+                //if(cursors.left.isDown){
+                else if(player.input.left.isDown && !player.input.shift.isDown){
+                    player.stickman.body.gravity.x = -20000;
+                    player.stickman.body.gravity.y = 0;
+                }    
+                //else if(cursors.up.isDown){
+                else if(player.input.up.isDown){
+                    player.stickman.body.velocity.y = -150;
+                    player.stickman.body.velocity.x =0;
+                }
+                //else if(cursors.down.isDown){
+                else if(player.input.down.isDown){
+                    player.stickman.body.velocity.y = 150;
+                    player.stickman.body.velocity.x =0;
+                }   **/    
+                
+            }
+            
+            //stick to the right wall
+            else if(player.stickman.angle< -45 && player.stickman.angle >= -135){
+                player.stickman.body.gravity.y = 0;
+                player.stickman.body.gravity.x = 20000;
+                console.log("player.angle");
+                /**
+                //if(cursors.left.isDown){
+                if(player.input.left.isDown && !player.input.shift.isDown){
+                    player.stickman.body.gravity.x = -20000; 
+                    player.stickman.body.gravity.y = 0;
+                }
+                //if(cursors.right.isDown){
+                if(player.input.right.isDown && !player.input.shift.isDown){
+                    player.stickman.body.gravity.x = 20000; 
+                    player.stickman.body.gravity.y = 0;
+                }
+                //else if(cursors.up.isDown){
+                else if(player.input.up.isDown){
+                    player.stickman.body.velocity.y = -150;
+                    player.stickman.body.velocity.x =0;
+                }
+                //else if(cursors.down.isDown){
+                else if(player.input.down.isDown){
+                    player.stickman.body.velocity.y = 150;
+                    player.stickman.body.velocity.x =0;
+                }  **/     
+            }
+ 
         for(var i in stickmanList)
         {
             if(!stickmanList[i]) continue;
             var curBullets = stickmanList[i].bullets;
             var curStickman = stickmanList[i].stickman;
-            
-            
-           
-            
-            // stick to the sky 
-            if(curStickman.angle <= 180 && curStickman.angle > 135 
-                || curStickman.angle < -135 && curStickman.angle >= -180 ){
-                curStickman.body.gravity.y = -200;
-                curStickman.body.gravity.x = 0;
-                
-                //if(cursors.down.isDown){
-                if(down.isDown){
-                    curStickman.body.velocity.y = 200;
-                    curStickman.body.velocity.x = 0;
-                }
-                //else if(cursors.left.isDown){
-                else if(left.isDown){
-                    curStickman.body.velocity.x = -150;
-                    curStickman.body.velocity.y = 0;
-                }
-                //else if(cursors.right.isDown){
-                else if(right.isDown){
-                    curStickman.body.velocity.x = 150;
-                    curStickman.body.velocity.y = 0;
-                }
-                //else if(cursors.up.isDown){
-                else if(up.isDown){
-                    curStickman.body.velocity.y = -200;
-                    curStickman.body.velocity.x = 0;      
-                }
-                
-            }
-            
-            //stick to the ground
-            else if (curStickman.angle <= 45 && curStickman.angle >=0
-                ||curStickman.angle < 0 && curStickman.angle >= -45){
-                curStickman.body.gravity.y = 200;
-                curStickman.body.gravity.x = 0;
-                
-                
-                 //if(cursors.right.isDown){
-                if(right.isDown){
-                    curStickman.body.velocity.x = 150;
-                    curStickman.body.velocity.y = 0;
-                } 
-                //else if(cursors.left.isDown){
-                else if(left.isDown){
-                    curStickman.body.velocity.x = -150;
-                    curStickman.body.velocity.y = 0;
-                }
-                //else if(cursors.up.isDown){
-                else if(up.isDown){
-                    curStickman.body.velocity.y = -350;
-                    curStickman.body.velocity.x = 0;
-                }
-                //else if(cursors.down.isDown){
-                else if(down.isDown){
-                    curStickman.body.velocity.y = 350;
-                    curStickman.body.velocity.x = 0;
-                }
-                    
-            }
         
-            //stick to the left wall
-            else if (curStickman.angle <= 135 && curStickman.angle >45){
-                //console.log("angle in 45,135", curStickman.angle);
-                curStickman.body.gravity.y = 0;
-                curStickman.body.gravity.x = -15000;
-                //if(cursors.right.isDown){
-                if(right.isDown){
-                    curStickman.body.gravity.x = 20000;
-                    curStickman.body.gravity.y = 0;
-                } 
-                //if(cursors.left.isDown){
-                else if(left.isDown){
-                    curStickman.body.gravity.x = -20000;
-                    curStickman.body.gravity.y = 0;
-                }    
-                //else if(cursors.up.isDown){
-                else if(up.isDown){
-                    curStickman.body.velocity.y = -150;
-                    curStickman.body.velocity.x =0;
-                }
-                //else if(cursors.down.isDown){
-                else if(down.isDown){
-                    curStickman.body.velocity.y = 150;
-                    curStickman.body.velocity.x =0;
-                }      
-                
-            }
+            //console.log("player id", player.id);
+            //console.log("stickman id",curStickman.id);
             
-            //stick to the right wall
-            else if(curStickman.angle< -45 && curStickman.angle >= -135){
-                curStickman.body.gravity.y = 0;
-                curStickman.body.gravity.x = 20000;
-                //if(cursors.left.isDown){
-                if(left.isDown){
-                    curStickman.body.gravity.x = -20000; 
-                    curStickman.body.gravity.y = 0;
-                }
-                //if(cursors.right.isDown){
-                if(right.isDown){
-                    curStickman.body.gravity.x = 20000; 
-                    curStickman.body.gravity.y = 0;
-                }
-                //else if(cursors.up.isDown){
-                else if(up.isDown){
-                    curStickman.body.velocity.y = -150;
-                    curStickman.body.velocity.x =0;
-                }
-                //else if(cursors.down.isDown){
-                else if(down.isDown){
-                    curStickman.body.velocity.y = 150;
-                    curStickman.body.velocity.x =0;
-                }       
-            }
-            
-            console.log(curStickman.angle);
-            console.log("gravityx", curStickman.body.gravity.x);
-            console.log("gravityy", curStickman.body.gravity.y);
+            //if (player.id == curStickman.id){
+  
+            //console.log(curStickman.angle);
+            //console.log("gravityx", curStickman.body.gravity.x);
+            //console.log("gravityy", curStickman.body.gravity.y);
             //console.log("velx", curStickman.body.velocity.x);
             //console.log("vely", curStickman.body.velocity.y); 
             
