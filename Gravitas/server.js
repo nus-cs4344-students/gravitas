@@ -139,7 +139,6 @@ eurecaServer.exports.handleKeys = function(keys)
     for(var r in roomList)
     {
         var room = roomList[r];
-		var etc = 0;
         for(var c in room){
             //console.log(room[c]);
 		    var remote = clients[room[c]].remote;//Sets the client to update
@@ -147,7 +146,6 @@ eurecaServer.exports.handleKeys = function(keys)
 
 	   }
 	   updatedClient.laststate = keys;
-        console.log(updatedClient.laststate);
     }
 	
 
@@ -209,7 +207,6 @@ eurecaServer.exports.leaveRoom = function(clientID)
 		}
 	}
 }
-
 
 server.listen(8000);
 

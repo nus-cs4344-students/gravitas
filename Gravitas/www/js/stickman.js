@@ -932,7 +932,6 @@ function bulletHitPlayer(targetStickman, bullet){
 	if(targetStickman == stickman)
 	{
 		console.log("I am hit!");
-		
 	}
 	console.log(targetStickman.health);
 
