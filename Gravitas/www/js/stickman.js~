@@ -15,8 +15,11 @@ var platforms;
 var facing;
 var readyToMove=false;
 var guns;    
+<<<<<<< HEAD
 var hasGun = 0;
+=======
 
+>>>>>>> origin/Rudimentary-multiplayer
 var bullet;    
 var bulletTime = 0;
 
@@ -36,22 +39,22 @@ var down;
 var shift;
 //var angle = 0;
 
+<<<<<<< HEAD
 var then;
 var now;
 var serverLag=0;
 var lagArray=[];
 var firstPress=[];
-var lagValueArray=[];
+=======
 var music;
 var shootsound;
-var localLag = 0;
-var localLagThen;
-var localLagNow;
+
+>>>>>>> origin/Rudimentary-multiplayer
 
 
 //this function will handle client communication with the server
 var eurecaClientSetup = function(){
- 	start_button.destroy();
+ 
     //create an instance of eureca.io client
     var eurecaClient = new Eureca.Client();
     
@@ -101,25 +104,11 @@ var eurecaClientSetup = function(){
     eurecaClient.exports.updateState = function(id, state)
     {
         if(stickmanList[id]) {
-			if(stickmanList[id] !== player)
-			{
             stickmanList[id].cursor = state; //left/right/up/fire states
-            stickmanList[id].stickman.x = state.x; //Snap stickman to received x
-            stickmanList[id].stickman.y = state.y; //Snap stickman to received y
-            stickmanList[id].stickman.angle = state.angle; //Snap stickman to received angle
-			}
-			else if(stickmanList[id] == player)
-			{
-				localLagNow = Date.now();
-				if((localLagNow - then) >= localLag)
-				{
-				 stickmanList[id].cursor = state; //left/right/up/fire states
-                 stickmanList[id].stickman.x = state.x; //Snap stickman to received x
-                 stickmanList[id].stickman.y = state.y; //Snap stickman to received y
-				 stickmanList[id].stickman.angle = state.angle; //Snap stickman to received angle	
-				}
-			}
-			stickmanList[id].update(id); //Run stickman update routine
+            stickmanList[id].stickman.x = state.x;
+            stickmanList[id].stickman.y = state.y;
+            stickmanList[id].stickman.angle = state.angle;
+            stickmanList[id].update(id);
         }
 		if(stickmanList[id] == player) {
 			now = Date.now();
@@ -273,24 +262,7 @@ StickMan.prototype.snapShot = function() {
 };
 
 StickMan.prototype.getInput = function() {  //Differentiate between Stickman.update for stickman positions and movement, and getInput for getting player input.
-    	var highWater = 0;
-	for(var i in lagValueArray)
-	{
-		if(i > highWater)
-		{
-			highWater = i; //Find laggiest client
-		}
-	}
-	
-	if(highWater > 100)
-	{
-		localLag = 100;
-	}
-	else
-	{
-		localLag = highWater;
-	}
-	
+
 	var inputChanged = (
 			this.cursor.left != this.input.left ||
 			this.cursor.right != this.input.right ||
@@ -329,7 +301,7 @@ StickMan.prototype.update = function(id) { //StickMan.update is a positional upd
 		this.healthText.text = this.stickman.health; //Update health every time this is called.
 	}
 	var lagValue = (lagArray[id]/1000)+(serverLag/1000);
-	lagValueArray[id] = lagValue;
+
 	
 
 	if(this.cursor.up)
@@ -663,7 +635,7 @@ function startgame(){
     game.add.sprite((GAME_WIDTH-500)/2, 30, 'title');
     game.add.sprite((GAME_WIDTH)/2-500, 350,'figure');
     // add the button that will start the game
-    start_button = game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'button-start', eurecaClientSetup, 1, 0, 2);
+    game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'button-start', eurecaClientSetup, 1, 0, 2);
 
 }
 
@@ -687,11 +659,14 @@ function preload(){
 	game.load.image('gun5', 'www/assets/smallgun5.png');
     game.load.image('bullet', 'www/assets/pbullet.gif');
     game.load.spritesheet('healthBar','www/assets/healthbar.png' , 32,35.2); 
+<<<<<<< HEAD
     game.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48);
+=======
     game.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48); 
     
     game.load.audio('boden', ['www/assets/audio/bodenstaendig_2000_in_rock_4bit.mp3', 'www/assets/audio/bodenstaendig_2000_in_rock_4bit.ogg']);
     game.load.audio('gunshot',['www/assets/audio/gunshot.mp3', 'www/assets/audio/gunshot.ogg']);
+>>>>>>> origin/Rudimentary-multiplayer
 
 }
 
@@ -932,6 +907,7 @@ function bulletHitPlayer(targetStickman, bullet){
 	if(targetStickman == stickman)
 	{
 		console.log("I am hit!");
+		
 	}
 	console.log(targetStickman.health);
 
