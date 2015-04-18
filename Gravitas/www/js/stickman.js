@@ -382,7 +382,10 @@ function preload(){
     game.load.image('title', 'www/assets/gravitaslogo.png');
     game.load.image('figure', 'www/assets/stickman.png');
     game.load.spritesheet('button-start', 'www/assets/button-start.png', 401, 143); 
-    game.load.image('left_button', 'www/assets/left.png');      
+    game.load.image('left_button', 'www/assets/left.png');
+    game.load.image('right_button', 'www/assets/right.png');  
+    game.load.image('up_button', 'www/assets/up.png');  
+    game.load.image('down_button', 'www/assets/down.png');  
     
     game.load.image('sky', 'www/assets/sky2.png');
     game.load.image('ground', 'www/assets/platform.png');
@@ -561,9 +564,18 @@ function create(){
 	eurecaServer.handshake(myId, stickman.x, stickman.y);
     player.snapShot();
     
-    leftButton = game.add.button(GAME_WIDTH-1400, GAME_HEIGHT-50, 'left_button', null);
+    leftButton = game.add.button(GAME_WIDTH-1500, GAME_HEIGHT-50, 'left_button', null);
     leftButton.scale.set(0.1,0.1);
+    
+    upButton = game.add.button(GAME_WIDTH-1400, GAME_HEIGHT-120, 'up_button', null);
+    upButton.scale.set(0.1,0.1);    
 
+    downButton = game.add.button(GAME_WIDTH-1400, GAME_HEIGHT-50, 'down_button', null);
+    downButton.scale.set(0.1,0.1); 
+    
+    rightButton = game.add.button(GAME_WIDTH-1300, GAME_HEIGHT-50, 'right_button', null);
+    rightButton.scale.set(0.1,0.1);  
+        
     //spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     //game.input.keyboard.addKey(Phaser.Keyboard.W);
     // rotateClockwise = game.input.keyboard.addKey(Phaser.Keyboard.A);
