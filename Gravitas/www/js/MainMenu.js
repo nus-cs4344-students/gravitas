@@ -17,7 +17,7 @@ Gravitas.MainMenu.prototype = {
 		// add the button that will start the game
 		this.add.button(Gravitas.GAME_WIDTH-401-200, Gravitas.GAME_HEIGHT-143-50, 'button-start', this.startGame, this, 1, 0, 2);
 	},
-	startGame: function() {
+	startGame: function(pointer) {
 		// start the Game state
 		this.state.start('StickMan');
 	}

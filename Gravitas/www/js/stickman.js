@@ -366,7 +366,7 @@ function startgame(){
     game.add.sprite((GAME_WIDTH-500)/2, 30, 'title');
     game.add.sprite((GAME_WIDTH)/2-500, 350,'figure');
     // add the button that will start the game
-    game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'button-start', eurecaClientSetup, 1, 0, 2);
+    //game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'button-start', eurecaClientSetup, 1, 0, 2);
 
 }
 
@@ -379,7 +379,8 @@ function preload(){
    
     game.load.image('title', 'www/assets/gravitaslogo.png');
     game.load.image('figure', 'www/assets/stickman.png');
-    game.load.spritesheet('button-start', 'www/assets/button-start.png', 401, 143);       
+    game.load.spritesheet('button-start', 'www/assets/button-start.png', 401, 143); 
+    game.load.image('left_button', 'www/assets/left.jpg');      
     
     game.load.image('sky', 'www/assets/sky2.png');
     game.load.image('ground', 'www/assets/platform.png');
@@ -404,8 +405,28 @@ function create(){
     right = game.input.keyboard.addKey(Phaser.Keyboard.D);
     up = game.input.keyboard.addKey(Phaser.Keyboard.W);
     down = game.input.keyboard.addKey(Phaser.Keyboard.S);
-    
-    
+
+    // Add touch buttons
+    //left_button = game.add.button(GAME_WIDTH-200, GAME_HEIGHT-143-50, 'left-button', eurecaClientSetup);
+    //left_button.inputEnabled = true;
+    //left_button.visible = true;
+    //right_button = game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'control-buttons',eurecaClientSetup, 1);
+    //up_button = game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'control-buttons', eurecaClientSetup, 2);
+    //down_button = game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'control-buttons', eurecaClientSetup, 3);
+
+    // Create a group to house touch buttons
+	//var buttons = game.add.group();
+	//buttons.alpha = 0.33;
+	//buttons.visible = true;
+
+	// Configure button positions
+	//var buttonXStart = 64;
+	//var buttonXEnd = game.width - (64);
+	//var buttonY = game.height - (64 + 32);
+	//var buttonWidth = 96;
+	//var buttonSpacing = buttonWidth + 32;
+
+
     //rotateClockwise = cursors.right;
     //rotateAntiClockwise = cursors.left;
     rotateClockwise = right;
