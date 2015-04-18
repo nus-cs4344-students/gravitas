@@ -16,6 +16,7 @@ var facing;
 var readyToMove=false;
 var guns;    
 var hasGun = 0;
+
 var bullet;    
 var bulletTime = 0;
 
@@ -40,6 +41,12 @@ var now;
 var serverLag=0;
 var lagArray=[];
 var firstPress=[];
+var lagValueArray=[];
+var music;
+var shootsound;
+var localLag = 0;
+var localLagThen;
+var localLagNow;
 
 
 //this function will handle client communication with the server
@@ -94,11 +101,25 @@ var eurecaClientSetup = function(){
     eurecaClient.exports.updateState = function(id, state)
     {
         if(stickmanList[id]) {
+			if(stickmanList[id] !== player)
+			{
             stickmanList[id].cursor = state; //left/right/up/fire states
-            stickmanList[id].stickman.x = state.x;
-            stickmanList[id].stickman.y = state.y;
-            stickmanList[id].stickman.angle = state.angle;
-            stickmanList[id].update(id);
+            stickmanList[id].stickman.x = state.x; //Snap stickman to received x
+            stickmanList[id].stickman.y = state.y; //Snap stickman to received y
+            stickmanList[id].stickman.angle = state.angle; //Snap stickman to received angle
+			}
+			else if(stickmanList[id] == player)
+			{
+				localLagNow = Date.now();
+				if((localLagNow - then) >= localLag)
+				{
+				 stickmanList[id].cursor = state; //left/right/up/fire states
+                 stickmanList[id].stickman.x = state.x; //Snap stickman to received x
+                 stickmanList[id].stickman.y = state.y; //Snap stickman to received y
+				 stickmanList[id].stickman.angle = state.angle; //Snap stickman to received angle	
+				}
+			}
+			stickmanList[id].update(id); //Run stickman update routine
         }
 		if(stickmanList[id] == player) {
 			now = Date.now();
@@ -252,7 +273,24 @@ StickMan.prototype.snapShot = function() {
 };
 
 StickMan.prototype.getInput = function() {  //Differentiate between Stickman.update for stickman positions and movement, and getInput for getting player input.
-
+    	var highWater = 0;
+	for(var i in lagValueArray)
+	{
+		if(i > highWater)
+		{
+			highWater = i; //Find laggiest client
+		}
+	}
+	
+	if(highWater > 100)
+	{
+		localLag = 100;
+	}
+	else
+	{
+		localLag = highWater;
+	}
+	
 	var inputChanged = (
 			this.cursor.left != this.input.left ||
 			this.cursor.right != this.input.right ||
@@ -291,7 +329,7 @@ StickMan.prototype.update = function(id) { //StickMan.update is a positional upd
 		this.healthText.text = this.stickman.health; //Update health every time this is called.
 	}
 	var lagValue = (lagArray[id]/1000)+(serverLag/1000);
-
+	lagValueArray[id] = lagValue;
 	
 
 	if(this.cursor.up)
@@ -650,6 +688,10 @@ function preload(){
     game.load.image('bullet', 'www/assets/pbullet.gif');
     game.load.spritesheet('healthBar','www/assets/healthbar.png' , 32,35.2); 
     game.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48);
+    game.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48); 
+    
+    game.load.audio('boden', ['www/assets/audio/bodenstaendig_2000_in_rock_4bit.mp3', 'www/assets/audio/bodenstaendig_2000_in_rock_4bit.ogg']);
+    game.load.audio('gunshot',['www/assets/audio/gunshot.mp3', 'www/assets/audio/gunshot.ogg']);
 
 }
 
@@ -756,6 +798,13 @@ function create(){
 	var ledge16 = platforms.create(1480, 600, 'ground');
 	ledge16.scale.setTo(0.3, 0.1);
 	ledge16.body.immovable = true;
+    
+    music = game.add.audio('boden');
+    music.play();
+    
+    shootsound = game.add.audio('gunshot');
+    
+    
 
     // player settings
     stickmanList = {};
@@ -875,6 +924,7 @@ function destroyBullets(bullets,platforms){
 
 function bulletHitPlayer(targetStickman, bullet){
 	console.log(bullet.key);
+    shootsound.play();
 	if(bullet.key == 'bullet')
 	{
 		targetStickman.health = targetStickman.health - 10;
