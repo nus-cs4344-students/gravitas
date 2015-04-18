@@ -242,17 +242,17 @@ StickMan.prototype.update = function() {
     */
     leftButton.events.onInputDown.add(function () {
         left = true;
-         console.log("left button is down");
+         //console.log("left button is down");
     });
     
     rightButton.events.onInputDown.add(function () {
         right = true;
-        console.log("right button is down");
+        //console.log("right button is down");
     });
     
     upButton.events.onInputDown.add(function () {
         up = true;
-        console.log("up button is down");
+        //console.log("up button is down");
     });
    /* if (this.game.input.activePointer.isDown && this.game.input.activePointer.targetObject != null)
     {
@@ -766,9 +766,9 @@ function update(){
                 }       
             }
             
-            console.log(curStickman.angle);
-            console.log("gravityx", curStickman.body.gravity.x);
-            console.log("gravityy", curStickman.body.gravity.y);
+          //  console.log(curStickman.angle);
+            //console.log("gravityx", curStickman.body.gravity.x);
+            //console.log("gravityy", curStickman.body.gravity.y);
             //console.log("velx", curStickman.body.velocity.x);
             //console.log("vely", curStickman.body.velocity.y); 
             
