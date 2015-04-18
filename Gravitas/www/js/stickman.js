@@ -16,7 +16,6 @@ var facing;
 var readyToMove=false;
 var guns;    
 var hasGun = 0;
-
 var bullet;    
 var bulletTime = 0;
 
@@ -36,6 +35,11 @@ var down;
 var shift;
 //var angle = 0;
 
+var then;
+var now;
+var serverLag=0;
+var lagArray=[];
+var firstPress=[];
 
 
 //this function will handle client communication with the server
@@ -94,8 +98,29 @@ var eurecaClientSetup = function(){
             stickmanList[id].stickman.x = state.x;
             stickmanList[id].stickman.y = state.y;
             stickmanList[id].stickman.angle = state.angle;
-            stickmanList[id].update();
+            stickmanList[id].update(id);
         }
+		if(stickmanList[id] == player) {
+			now = Date.now();
+			if(!serverLag)
+			{
+				serverLag = now - then;
+			}
+			else
+			{
+				serverLag = 0.8*(serverLag) + 0.2*(now - then);
+			}
+			console.log("Server lag is: ", serverLag);
+		} //If it is own stickman's update, use this to time lag.
+		else
+		{
+			if(stickmanList[id].cursor.lag)
+			{	
+			lagArray[id] = stickmanList[id].cursor.lag;
+				firstPress[id] = true;
+			}
+			
+		}
     };  
 	eurecaClient.exports.roomStatus = function(roomlength)
 	{
@@ -219,8 +244,10 @@ StickMan.prototype.snapShot = function() {
     
     
 	this.input.angle = 0;
+	this.input.lag = serverLag;
 	console.log("snapShot: ");
 	console.log(this.input);
+	then = Date.now();
 	eurecaServer.handleKeys(this.input);
 };
 
@@ -237,17 +264,19 @@ StickMan.prototype.getInput = function() {  //Differentiate between Stickman.upd
     
 	if(inputChanged && readyToMove)
 	{
-		//Send values to server
+		    //Send values to server
 			this.input.x = stickman.x;
 			this.input.y = stickman.y;
-            this.input.angle = stickman.angle;
+        this.input.angle = stickman.angle;
+		this.input.lag = serverLag;
+			//console.log(this.input.timestamp);
                      
 			// whenever there is a change in user input, the client will call
             // the server side handleKeys function. The handleKeys function will 
             // in turn invoke the client updateState function. The updateState function
             // will then update all the stickmans in a client's game.
-
-			eurecaServer.handleKeys(this.input);
+		then = Date.now();
+		eurecaServer.handleKeys(this.input);
 
 			//Besides these three values, tx and ty are updated.
 			//angle is not currently useful, and should always be 0.
@@ -255,14 +284,13 @@ StickMan.prototype.getInput = function() {  //Differentiate between Stickman.upd
 };
 
 
-StickMan.prototype.update = function() { //StickMan.update is a positional update to be run for a stickman once per frame.
+StickMan.prototype.update = function(id) { //StickMan.update is a positional update to be run for a stickman once per frame.
     
 	if(stickman == this.stickman)
 	{//Remember stickman is short for player.stickman, and player refers to the player's StickMan object.
 		this.healthText.text = this.stickman.health; //Update health every time this is called.
 	}
-	
-
+	var lagValue = (lagArray[id]/1000)+(serverLag/1000);
 
 	
 
@@ -276,6 +304,11 @@ StickMan.prototype.update = function() { //StickMan.update is a positional updat
 				this.stickman.body.velocity.y = -350;
 				this.stickman.body.velocity.x = 0;
 			}
+			/*if(firstPress[id] == true)
+			{
+				//Snap it to real extrapolated position based on lag.
+				this.stickman.body.velocity.y -= lagValue*this.stickman.body.velocity.y;
+			}*/
 		}
 		else if(this.stickman.body.touching.up || this.stickman.body.blocked.up)
 		{
@@ -285,6 +318,12 @@ StickMan.prototype.update = function() { //StickMan.update is a positional updat
 				this.stickman.body.velocity.y = 350;
 				this.stickman.body.velocity.x = 0;
 			}
+			/*if(firstPress[id] == true)
+			{
+				//Snap it to real extrapolated position based on lag.
+				this.stickman.body.velocity.y += lagValue*this.stickman.body.velocity.y;
+			}*/
+			
 		}
 		else if(this.stickman.body.touching.left || this.stickman.body.blocked.left)
 		{
@@ -294,6 +333,11 @@ StickMan.prototype.update = function() { //StickMan.update is a positional updat
 				this.stickman.body.velocity.x = 300;
 				this.stickman.body.velocity.y = 0;
 			}
+			/*if(firstPress[id] == true)
+			{
+				//Snap it to real extrapolated position based on lag.
+				this.stickman.body.velocity.x += lagValue*this.stickman.body.velocity.x;
+			}*/
 		}
 		else if(this.stickman.body.touching.right || this.stickman.body.blocked.right)
 		{
@@ -303,6 +347,11 @@ StickMan.prototype.update = function() { //StickMan.update is a positional updat
 				this.stickman.body.velocity.x = -300;
 				this.stickman.body.velocity.y = 0;
 			}
+			/*if(firstPress[id] == true)
+			{
+				//Snap it to real extrapolated position based on lag.
+				this.stickman.body.velocity.x -= lagValue*this.stickman.body.velocity.x;
+			}*/
 		}
 
 	}
@@ -313,6 +362,7 @@ StickMan.prototype.update = function() { //StickMan.update is a positional updat
 		{
 			this.stickman.angle -=1;
 			console.log("Decrementing angle.");
+			
 		}
 		else
 		{
@@ -321,24 +371,44 @@ StickMan.prototype.update = function() { //StickMan.update is a positional updat
 				this.stickman.body.velocity.x = -150;
 				this.stickman.animations.play('left');
 				this.facing = 'left';
+			/*	if(firstPress[id] == true)
+			{
+				//Snap it to real extrapolated position based on lag.
+				this.stickman.body.velocity.x -= lagValue*this.stickman.body.velocity.x;
+			}*/
 			}
 			else if(this.stickman.angle === -180)
 			{
 				this.stickman.body.velocity.x = -150;
 				this.stickman.animations.play('right');
 				this.facing = 'right';
+			/*	if(firstPress[id] == true)
+			{
+				//Snap it to real extrapolated position based on lag.
+				this.stickman.body.velocity.x -= lagValue*this.stickman.body.velocity.x;
+			}*/
 			}
 			else if(this.stickman.angle === 90)
 			{
 				this.stickman.body.velocity.y = -150;
 				this.stickman.animations.play('left');
 				this.facing = 'left';
+			/*		if(firstPress[id] == true)
+			{
+				//Snap it to real extrapolated position based on lag.
+				this.stickman.body.velocity.y -= lagValue*this.stickman.body.velocity.y;
+			}*/
 			}
 			else if(this.stickman.angle === -90)
 			{
 				this.stickman.body.velocity.y = 150;
 				this.stickman.animations.play('left');
 				this.facing = 'right';
+			/*		if(firstPress[id] == true)
+			{
+				//Snap it to real extrapolated position based on lag.
+				this.stickman.body.velocity.y += lagValue*this.stickman.body.velocity.y;
+			}*/
 			}
 		}
 	}
@@ -356,24 +426,44 @@ StickMan.prototype.update = function() { //StickMan.update is a positional updat
 				this.stickman.body.velocity.x = 150;
 				this.stickman.animations.play('right');
 				this.facing = 'right';
+			/*		if(firstPress[id] == true)
+			{
+				//Snap it to real extrapolated position based on lag.
+				this.stickman.body.velocity.x += lagValue*this.stickman.body.velocity.x;
+			}*/
 			}
 			else if(this.stickman.angle === -180)
 			{
 				this.stickman.body.velocity.x = 150;
 				this.stickman.animations.play('left');
 				this.facing = 'left';
+			/*  if(firstPress[id] == true)
+			{
+				//Snap it to real extrapolated position based on lag.
+				this.stickman.body.velocity.x += lagValue*this.stickman.body.velocity.x;
+			}*/
 			}
 			else if(this.stickman.angle === 90)
 			{
 				this.stickman.body.velocity.y = 150;
 				this.stickman.animations.play('right');
 				this.facing = 'right';
+			/*if(firstPress[id] == true)
+			{
+				//Snap it to real extrapolated position based on lag.
+				this.stickman.body.velocity.y += lagValue*this.stickman.body.velocity.y;
+			}*/
 			}
 			else if(this.stickman.angle === -90)
 			{
 				this.stickman.body.velocity.y = -150;
 				this.stickman.animations.play('right');
 				this.facing = 'right';
+			/*	if(firstPress[id] == true)
+			{
+				//Snap it to real extrapolated position based on lag.
+				this.stickman.body.velocity.y -= lagValue*this.stickman.body.velocity.y;
+			}*/
 			}	
 		}
 	}
@@ -468,7 +558,7 @@ StickMan.prototype.update = function() { //StickMan.update is a positional updat
 		this.fire({x:this.cursor.tx, y:this.cursor.ty}); //Values to be sent to server include these, as part of this.input as declared in update() 
 	}
 
-
+	firstPress[id] = false;
      
 
 
@@ -476,25 +566,27 @@ StickMan.prototype.update = function() { //StickMan.update is a positional updat
 
 StickMan.prototype.fire = function(target)
 {
+	console.log(this.stickman);
+	console.log("Firing.");
 	//Fire only when the interval calls for it
 	var bulletspeed=0;
 	var bullettype;
-	if(!stickman.alive) return;
-	if(!stickman.guntype) return;
+	if(!this.stickman.alive) return;
+	if(!this.stickman.guntype) return;
 	console.log(stickman.guntype);
-	if(stickman.guntype == 'gun')
+	if(this.stickman.guntype == 'gun')
 	{
 		this.fireRate = 800;
 		bulletspeed = 500;
 		bullettype = 1;
 	}
-	else if(stickman.guntype == 'gun2')
+	else if(this.stickman.guntype == 'gun2')
 	{
 		this.fireRate = 1000;
 		bulletspeed = 800;
 		bullettype = 2;
 	}
-	else if(stickman.guntype == 'gun3')
+	else if(this.stickman.guntype == 'gun3')
 	{
 		this.fireRate = 100;
 		bulletspeed = 300;
@@ -540,7 +632,7 @@ function startgame(){
 function preload(){
     // preload the loading indicator first before anything else
     game.load.image('preloaderBar', 'www/assets/loading-bar.png');
-    
+   	game.time.advancedTiming = true; 
     // set background color and preload image
     game.stage.backgroundColor = '#FFFFFF';
    
@@ -557,7 +649,7 @@ function preload(){
 	game.load.image('gun5', 'www/assets/smallgun5.png');
     game.load.image('bullet', 'www/assets/pbullet.gif');
     game.load.spritesheet('healthBar','www/assets/healthbar.png' , 32,35.2); 
-    game.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48);   
+    game.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48);
 
 }
 
@@ -578,6 +670,7 @@ function create(){
     // enable arcade physics system
     game.physics.startSystem(Phaser.Physics.ARCADE); 
     game.stage.disableVisibilityChange = true;
+
        
     var background = game.add.sprite(0,0,'sky');
     //  scalling background
@@ -698,6 +791,7 @@ function create(){
     //spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 	eurecaServer.handshake(myId, stickman.x, stickman.y);
     player.snapShot();
+	player.snapShot(); //Second time for lag.
 
     //spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     //game.input.keyboard.addKey(Phaser.Keyboard.W);
@@ -717,7 +811,8 @@ function update(){
     
         player.input.left = left.isDown;
         player.input.right = right.isDown;
-        player.input.up = up.isDown;
+    	player.input.up = up.isDown;
+
        // player.input.down = down.isDown;
         player.input.fire = game.input.activePointer.isDown;
         player.input.shift = shift.isDown;  
@@ -728,13 +823,13 @@ function update(){
        game.physics.arcade.collide(guns, platforms);
 	   game.physics.arcade.collide(guns2, platforms);
 	   game.physics.arcade.collide(guns3, platforms);
-    
+    game.debug.text(game.time.fps || '--', 2, 14, "#00ff00"); 
     player.getInput(); //Get input from player.
 	
         for(var i in stickmanList)
         {
             if(!stickmanList[i]) continue;
-			stickmanList[i].update(); //Update all stickmen regardless of whether alive or not.
+			stickmanList[i].update(i); //Update all stickmen regardless of whether alive or not.
             var curBullets = stickmanList[i].bullets;
             var curStickman = stickmanList[i].stickman;
 
@@ -759,17 +854,17 @@ function update(){
 
 
 
-function collectGun(player,gun){
+function collectGun(stickmanplayer,gun){
         // Removes the gun from the screen  
     gun.kill();
 	console.log(gun);
 	console.log(gun.key);
 	if(gun.key == 'gun')
-		player.guntype = 'gun';
+		stickmanplayer.guntype = 'gun';
 	else if(gun.key == 'gun2')
-		player.guntype = 'gun2';
+		stickmanplayer.guntype = 'gun2';
 	else if(gun.key == 'gun3')
-		player.guntype = 'gun3';
+		stickmanplayer.guntype = 'gun3';
     
 }  
 
@@ -783,10 +878,6 @@ function bulletHitPlayer(targetStickman, bullet){
 	if(bullet.key == 'bullet')
 	{
 		targetStickman.health = targetStickman.health - 10;
-	}
-	else
-	{
-		target.Stickman.health = targetStickman.health - 3;
 	}
 	if(targetStickman == stickman)
 	{

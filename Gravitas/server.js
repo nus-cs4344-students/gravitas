@@ -136,19 +136,20 @@ eurecaServer.exports.handleKeys = function(keys)
 {
 	var conn = this.connection;
 	var updatedClient = clients[conn.id];
-    
     for(var r in roomList)
     {
         var room = roomList[r];
+		var etc = 0;
         for(var c in room){
             //console.log(room[c]);
-		      var remote = clients[room[c]].remote;//Sets the client to update
-		      remote.updateState(updatedClient.id, keys); //whenever a client presses a key, its keystrokes are               sent to all clients
+		    var remote = clients[room[c]].remote;//Sets the client to update
+		    remote.updateState(updatedClient.id, keys); //whenever a client presses a key, its keystrokes are               sent to all clients
 
 	   }
 	   updatedClient.laststate = keys;
-       // console.log(updatedClient.laststate);
+        console.log(updatedClient.laststate);
     }
+	
 
 
 };

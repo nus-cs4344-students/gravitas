@@ -8,7 +8,7 @@ app.use(express.static(__dirname));
 
   
 //get EurecaServer class
-var eurecaServer = new Eureca.Server({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'roomStatus']});
+var eurecaServer = new Eureca.Server({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'roomStatus', 'getRoomInfo', 'readyUp']});
 
 //create an instance of EurecaServer
 // Inform Eureca.io that the following client functions are trusted client functions
@@ -43,6 +43,7 @@ eurecaServer.onDisconnect(function (conn) {
 	console.log(roomList.length);
 	for(var i = 0; i< roomList.length; i++)
 	{
+		//Look through all rooms for the client disconnecting.
 		var elementPos = roomList[i].indexOf(removeId);
 	if(elementPos != -1)
 		{
@@ -64,24 +65,66 @@ eurecaServer.onDisconnect(function (conn) {
 	
 });
 
-eurecaServer.exports.handshake = function(id)
-{
-	for(var c in clients)
-	{
-		var remote = clients[c].remote;
-		remote.spawnEnemy(id, x, y);
 
-		if(c == id)
-		{
-			var newguy = clients[id].remote;
-		for(var cc in clients)
-		{
-			var x = clients[cc].laststate ? clients[cc].laststate.x: 0;
-			var y = clients[cc].laststate ? clients[cc].laststate.y: 0;
-			
-			newguy.spawnEnemy(clients[cc].id, x, y);
-		}
-		}
+
+eurecaServer.exports.provideRoomInfo = function (id)
+{
+    // for all the rooms in the Gravitas
+    console.log("entered provideroom info");
+    for (var r in roomList){
+        console.log("searching id in rooms");
+        //accessing a particular room
+     var room = roomList[r];
+        //for(var c in room[c]){
+        for(var i = 0; i< room.length; i++){
+            if (room[i] === id)
+            {   
+                console.log("found id in room");
+                var remote = clients[id].remote;
+                remote.getRoomInfo(room);
+            }
+        }
+    }
+};
+
+
+eurecaServer.exports.handshake = function(id, clientx, clienty)
+{
+    //problematic way of updating room info
+    //updating room info even though i loop through
+    // players that are not in my room
+	for(var r in roomList)
+	{
+        var room = roomList[r];
+        for (var i=0; i< room.length; i++){
+            if(room[i] !==id)
+            {
+            var remote = clients[room[i]].remote;
+            var remote2 = clients[room[i]].remote;
+            remote.getRoomInfo(room);
+            remote2.spawnEnemy(id, clientx, clienty, 'center'); //Spawn new guy for all the old clients
+                console.log("Spawned newguy at ",clientx," ",clienty);
+            }
+            if(room[i] === id)
+            {
+                var newguy = clients[room[i]].remote;
+            for(var cc in clients)
+                {
+                    //console.log(clients[cc]);
+                    if(cc!==id)
+                    {
+                var x = clients[cc].laststate ? clients[cc].laststate.x: 0;
+                var y = clients[cc].laststate ? clients[cc].laststate.y: 0;
+                var angle = clients[cc].laststate ? clients[cc].laststate.angle: 0;
+                console.log("This is angle ", angle);
+                newguy.spawnEnemy(clients[cc].id, x, y,angle);
+                console.log("Spawned enemy for newguy at ",x," ",y);
+                console.log("spawned enemy for newguy angle", angle);
+                    }
+            }
+            }
+        }
+
 	}
 };
  // whenever there is a change in user input, the client will call
@@ -93,15 +136,23 @@ eurecaServer.exports.handleKeys = function(keys)
 {
 	var conn = this.connection;
 	var updatedClient = clients[conn.id];
+    
+    for(var r in roomList)
+    {
+        var room = roomList[r];
+        for(var c in room){
+            //console.log(room[c]);
+		      var remote = clients[room[c]].remote;//Sets the client to update
+		      remote.updateState(updatedClient.id, keys); //whenever a client presses a key, its keystrokes are               sent to all clients
 
-	for(var c in clients)
-	{
-		var remote = clients[c].remote; //Sets the client to update
-		remote.updateState(updatedClient.id, keys); //whenever a client presses a key, its keystrokes are sent to all clients
+	   }
+	   updatedClient.laststate = keys;
+       // console.log(updatedClient.laststate);
+    }
 
-	}
-	updatedClient.laststate = keys;
+
 };
+
 //Client should call this every frame it can - simply forwards
 //the entire knowledge of server to each client when called.
 
@@ -118,6 +169,18 @@ eurecaServer.exports.joinRoom = function(clientID)
 			roomList[room][roomLength] = clientID;
 			roomFound = true;
 			console.log("Room joined at ", room, " with index ", roomLength);
+
+			if(roomLength == 3)
+			{
+				console.log("Ready up!");
+				//Notify all clients in room of readiness
+				for(var i = 0; i < roomLength+1; i++)
+				{
+					aclient = roomList[room][i];
+					console.log(aclient);
+					clients[aclient].remote.readyUp();
+				}
+			}
 			break;
 		}
 	}
@@ -145,6 +208,7 @@ eurecaServer.exports.leaveRoom = function(clientID)
 		}
 	}
 }
+
 
 server.listen(8000);
 
