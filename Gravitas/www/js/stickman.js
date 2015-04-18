@@ -51,7 +51,7 @@ var localLagNow;
 
 //this function will handle client communication with the server
 var eurecaClientSetup = function(){
- 
+ 	start_button.destroy();
     //create an instance of eureca.io client
     var eurecaClient = new Eureca.Client();
     
@@ -663,7 +663,7 @@ function startgame(){
     game.add.sprite((GAME_WIDTH-500)/2, 30, 'title');
     game.add.sprite((GAME_WIDTH)/2-500, 350,'figure');
     // add the button that will start the game
-    game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'button-start', eurecaClientSetup, 1, 0, 2);
+    start_button = game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'button-start', eurecaClientSetup, 1, 0, 2);
 
 }
 
