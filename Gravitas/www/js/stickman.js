@@ -17,6 +17,16 @@ var readyToMove=false;
 var guns;    
 var hasGun = 0;
 
+var leftButton;
+var rightButton;
+var upButton;
+var downButton;
+
+var left = false;
+var right = false;
+var up = false;
+
+
 var bullet;    
 var bulletTime = 0;
 
@@ -119,6 +129,7 @@ var eurecaClientSetup = function(){
 
 
 StickMan = function(index, game, player, serverx, servery, sangle) {
+    
     this.cursor = {
 		left:false,
 		right: false,
@@ -224,17 +235,41 @@ StickMan.prototype.snapShot = function() {
 };
 
 StickMan.prototype.update = function() {
-	var inputChanged = (
-			this.cursor.left != this.input.left ||
-			this.cursor.right != this.input.right ||
-			this.cursor.up != this.input.up ||
+    
+   /* if (leftButton.events.onInputDown){
+        console.log("left button is down");
+    }
+    */
+    leftButton.events.onInputDown.add(function () {
+        left = true;
+         console.log("left button is down");
+    });
+    
+    rightButton.events.onInputDown.add(function () {
+        right = true;
+        console.log("right button is down");
+    });
+    
+    upButton.events.onInputDown.add(function () {
+        up = true;
+        console.log("up button is down");
+    });
+   /* if (this.game.input.activePointer.isDown && this.game.input.activePointer.targetObject != null)
+    {
+        //console.log("left button is down");
+       }
+    */
+    var inputChanged = (
+			this.cursor.left != this.input.left || this.cursor.left != left  ||
+			this.cursor.right != this.input.right || this.cursor.right != right ||
+			this.cursor.up != this.input.up || this.cursor.up != up ||
             (this.cursor.rotateClockwise != this.input.rotateClockwise  &&  this.cursor.shift!= this.input.shift)||
             (this.cursor.rotateAntiClockwise != this.input.rotateAntiClockwise &&  this.cursor.shift!= this.input.shift)||
 			this.cursor.fire != this.input.fire
 	);
 	if(stickman == this.stickman)
 	this.healthText.text = this.stickman.health; //Update health every time this is called.
-
+    
 	if(inputChanged && readyToMove)
 	{
 		//Send values to server
@@ -267,13 +302,13 @@ StickMan.prototype.update = function() {
         this.stickman.angle -=6;
         //console.log("after",this.stickman.angle);
     }
-	else if(this.cursor.left)
+	else if(this.cursor.left || left === true)
 	{
 		this.stickman.body.velocity.x = -150;
 		this.stickman.animations.play('left');
 		this.facing = 'left';
 	}
-	else if (this.cursor.right)
+	else if (this.cursor.right || right === true)
 	{
 		this.stickman.body.velocity.x = 150;
 		this.stickman.animations.play('right');
@@ -297,7 +332,7 @@ StickMan.prototype.update = function() {
 			this.stickman.frame = 4;
 		}
 	}
-	if(this.cursor.up && this.stickman.body.touching.down)
+	if((this.cursor.up || up === true) && this.stickman.body.touching.down)
 	{
 		this.stickman.body.velocity.y = -350;
 	}
@@ -305,7 +340,18 @@ StickMan.prototype.update = function() {
 	{
 		this.fire({x:this.cursor.tx, y:this.cursor.ty}); //Values to be sent to server include these, as part of this.input as declared in update() 
 	}
+    
+    if (up === true){
+        up = false;
+    }
 	
+    if (left === true){
+        left = false;
+    }
+    
+    if (right === true){
+        right = false;
+    }
 };
 
 StickMan.prototype.fire = function(target)
@@ -410,26 +456,6 @@ function create(){
     right = game.input.keyboard.addKey(Phaser.Keyboard.D);
     up = game.input.keyboard.addKey(Phaser.Keyboard.W);
     down = game.input.keyboard.addKey(Phaser.Keyboard.S);
-
-    // Add touch buttons
-
-    //left_button.inputEnabled = true;
-    //left_button.visible = true;
-    //right_button = game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'control-buttons',eurecaClientSetup, 1);
-    //up_button = game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'control-buttons', eurecaClientSetup, 2);
-    //down_button = game.add.button(GAME_WIDTH-401-200, GAME_HEIGHT-143-50, 'control-buttons', eurecaClientSetup, 3);
-
-    // Create a group to house touch buttons
-	//var buttons = game.add.group();
-	//buttons.alpha = 0.33;
-	//buttons.visible = true;
-
-	// Configure button positions
-	//var buttonXStart = 64;
-	//var buttonXEnd = game.width - (64);
-	//var buttonY = game.height - (64 + 32);
-	//var buttonWidth = 96;
-	//var buttonSpacing = buttonWidth + 32;
 
 
     //rotateClockwise = cursors.right;
@@ -564,16 +590,16 @@ function create(){
 	eurecaServer.handshake(myId, stickman.x, stickman.y);
     player.snapShot();
     
-    leftButton = game.add.button(GAME_WIDTH-1500, GAME_HEIGHT-50, 'left_button', null);
+    leftButton = game.add.button(GAME_WIDTH-1500, GAME_HEIGHT-50, 'left_button', stickman.updte);
     leftButton.scale.set(0.1,0.1);
     
-    upButton = game.add.button(GAME_WIDTH-1400, GAME_HEIGHT-120, 'up_button', null);
+    upButton = game.add.button(GAME_WIDTH-1400, GAME_HEIGHT-120, 'up_button', stickman.update);
     upButton.scale.set(0.1,0.1);    
 
-    downButton = game.add.button(GAME_WIDTH-1400, GAME_HEIGHT-50, 'down_button', null);
-    downButton.scale.set(0.1,0.1); 
+    //downButton = game.add.button(GAME_WIDTH-1400, GAME_HEIGHT-50, 'down_button', downPress(stickman));
+//    downButton.scale.set(0.1,0.1); 
     
-    rightButton = game.add.button(GAME_WIDTH-1300, GAME_HEIGHT-50, 'right_button', null);
+    rightButton = game.add.button(GAME_WIDTH-1300, GAME_HEIGHT-50, 'right_button', stickman.update);
     rightButton.scale.set(0.1,0.1);  
         
     //spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
