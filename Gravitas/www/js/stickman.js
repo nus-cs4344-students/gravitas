@@ -15,7 +15,6 @@ var platforms;
 var facing;
 var readyToMove=false;
 var guns;    
-var hasGun = 0;
 
 var bullet;    
 var bulletTime = 0;
@@ -35,6 +34,9 @@ var up;
 var down;
 var shift;
 //var angle = 0;
+
+var music;
+var shootsound;
 
 
 
@@ -557,7 +559,10 @@ function preload(){
 	game.load.image('gun5', 'www/assets/smallgun5.png');
     game.load.image('bullet', 'www/assets/pbullet.gif');
     game.load.spritesheet('healthBar','www/assets/healthbar.png' , 32,35.2); 
-    game.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48);   
+    game.load.spritesheet('dude', 'www/assets/stickman288x48.png', 32, 48); 
+    
+    game.load.audio('boden', ['www/assets/audio/bodenstaendig_2000_in_rock_4bit.mp3', 'www/assets/audio/bodenstaendig_2000_in_rock_4bit.ogg']);
+    game.load.audio('gunshot',['www/assets/audio/gunshot.mp3', 'www/assets/audio/gunshot.ogg']);
 
 }
 
@@ -663,6 +668,13 @@ function create(){
 	var ledge16 = platforms.create(1480, 600, 'ground');
 	ledge16.scale.setTo(0.3, 0.1);
 	ledge16.body.immovable = true;
+    
+    music = game.add.audio('boden');
+    music.play();
+    
+    shootsound = game.add.audio('gunshot');
+    
+    
 
     // player settings
     stickmanList = {};
@@ -780,6 +792,7 @@ function destroyBullets(bullets,platforms){
 
 function bulletHitPlayer(targetStickman, bullet){
 	console.log(bullet.key);
+    shootsound.play();
 	if(bullet.key == 'bullet')
 	{
 		targetStickman.health = targetStickman.health - 10;
